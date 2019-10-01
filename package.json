@@ -1,0 +1,22 @@
+{
+  "name": "phaser-rts",
+  "version": "1.0.0",
+  "description": "An online multiplayer Real-Time-Strategy game using Phaser.io and Express.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "prettier": {
+    "semi": true,
+    "arrowParens": "always",
+    "singleQuote": true,
+    "tabWidth": 2
+  },
+  "keywords": [],
+  "author": "David, Matt",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "phaser": "^3.19.0"
+  }
+}
