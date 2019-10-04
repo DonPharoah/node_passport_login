@@ -4,7 +4,11 @@
   "description": "An online multiplayer Real-Time-Strategy game using Phaser.io and Express.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "clean": "rimraf ./public/js",
+    "build": "tsc",
+    "watch:build": "tsc --watch",
+    "watch:server": "nodemon server.js",
+    "start": "npm-run-all clean build --silent --parallel watch:build watch:server --print-label"
   },
   "prettier": {
     "semi": true,
@@ -18,5 +22,11 @@
   "dependencies": {
     "express": "^4.17.1",
     "phaser": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.3",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.0",
+    "typescript": "^3.6.3"
   }
 }

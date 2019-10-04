@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "./public/js",
+    "sourceMap": true,
+    "typeRoots": [
+      "./node_modules/phaser/types",
+      "./some-custom-lib"
+    ]
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"]
+}
