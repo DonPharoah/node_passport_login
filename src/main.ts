@@ -1,5 +1,3 @@
-/// <reference types="phaser" />
-
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
   visible: false,
@@ -13,6 +11,7 @@ class GameScene extends Phaser.Scene {
 
   constructor() {
     super(sceneConfig);
+    console.log('anotherone');
   }
 
   public create() {

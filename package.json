@@ -2,13 +2,13 @@
   "name": "phaser-rts",
   "version": "1.0.0",
   "description": "An online multiplayer Real-Time-Strategy game using Phaser.io and Express.",
-  "main": "server.js",
+  "main": "src/main.ts",
   "scripts": {
-    "clean": "rimraf ./public/js",
-    "build": "tsc",
-    "watch:build": "tsc --watch",
-    "watch:server": "nodemon server.js",
-    "start": "npm-run-all clean build --silent --parallel watch:build watch:server --print-label"
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "dev-server": "webpack-dev-server",
+    "socket-server": "nodemon ./server/server.js",
+    "start": "npm run dev-server"
   },
   "prettier": {
     "semi": true,
@@ -24,9 +24,13 @@
     "phaser": "^3.19.0"
   },
   "devDependencies": {
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.0.4",
     "nodemon": "^1.19.3",
-    "npm-run-all": "^4.1.5",
-    "rimraf": "^3.0.0",
-    "typescript": "^3.6.3"
+    "ts-loader": "^6.2.0",
+    "typescript": "^3.6.3",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2"
   }
 }
