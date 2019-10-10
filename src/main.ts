@@ -4,11 +4,18 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   key: 'Game'
 };
 
+/*
+("`-''-/").___..--''"`-._ 
+`6_ 6  )   `-.  (     ).`-.__.`) 
+(_Y_.)'  ._   )  `._ `. ``-..-' 
+ _..`--'_..-_/  /--'_.'
+((((.-''  ((((.'  (((.-' 
+
+*/
 class GameScene extends Phaser.Scene {
   private square: Phaser.GameObjects.Rectangle & {
     body: Phaser.Physics.Arcade.Body;
   };
-
   constructor() {
     super(sceneConfig);
     console.log('anotherone');
