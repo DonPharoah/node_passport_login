@@ -1,3 +1,5 @@
+import Building from './Entities/building';
+
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
   visible: false,
@@ -5,46 +7,76 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 };
 
 /*
-("`-''-/").___..--''"`-._ 
-`6_ 6  )   `-.  (     ).`-.__.`) 
-(_Y_.)'  ._   )  `._ `. ``-..-' 
- _..`--'_..-_/  /--'_.'
-((((.-''  ((((.'  (((.-' 
+    ( uwu *pounces you* )
 
+            ("`-''-/").___..--''"`-._        -- -
+            `u  u  )   `-.  (     ).`-.__.`) ====-- -
+            (_W_.)'  ._   )  `_   `\ ``-..-'   ==-- -
+            ((((.-''  ((((.'\       \      --- -
+                       -     "-_ _   \
+      -                         / F   )
+                    -     -    / / `--'
+               -              / /
+                    -        / /
+             -            __/ /
+                         /,-pJ
+            -        _--"-L ||
+                   ,"      "//
+      -           /  ,-""".//\
+                 /  /     // J____
+                J  /     // L/----\
+    .           F J     //__//^---'
+      `     ___J  F    '----| |
+           J---|  F         F F
+     `. `   `--J  L        J  F
+     .   .`     L J       J  F
+        .  .    J  \    ,"  F
+          .  `.` \  "--"  ,"
+             ` ``."-____-"
+             
 */
 class GameScene extends Phaser.Scene {
   private square: Phaser.GameObjects.Rectangle & {
     body: Phaser.Physics.Arcade.Body;
   };
-
-  private debugText: Phaser.GameObjects.Text;
-  private mousePointerText: Phaser.GameObjects.Text;
+  public howie: Phaser.Sound.BaseSound;
+  public wilhelm: Phaser.Sound.BaseSound;
+  public debugText: Phaser.GameObjects.Text;
+  public mousePointerText: Phaser.GameObjects.Text;
+  public buildings: Phaser.GameObjects.Group;
 
   constructor() {
     super(sceneConfig);
-    console.log('anotherone');
   }
-
+  public preload() {
+    this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
+    this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
+  }
   public create() {
+    this.howie = this.sound.add('howie', { volume: 0.5 });
+    this.wilhelm = this.sound.add('wilhelm', { volume: 0.5 });
     this.square = this.add.rectangle(400, 400, 100, 100, 0xffffff) as any;
     this.debugText = this.add.text(20, 20, 'Testing', { fontSize: '20px' });
-    this.mousePointerText = this.add.text(20, 100, 'Testing', {
+    this.mousePointerText = this.add.text(20, 50, 'Testing', {
       fontSize: '20px'
     });
     this.physics.add.existing(this.square);
+    this.buildings = this.add.group([], {
+      name: 'buildings',
+      key: 'building'
+    });
+
+    this.input.on('pointerdown', (pointer) => {
+      new Building(this, this.input.mousePointer.x, this.input.mousePointer.y, 100, 100);
+      this.howie.play();
+    });
   }
 
   public update() {
     const cursorKeys = this.input.keyboard.createCursorKeys();
-    this.debugText.setText(
-      `x: ${Math.round(this.square.getCenter().x)}, y: ${Math.round(
-        this.square.getCenter().y
-      )}`
-    );
+
     this.mousePointerText.setText(
-      `x: ${Math.round(this.input.mousePointer.x)}, y: ${Math.round(
-        this.input.mousePointer.y
-      )}`
+      `x: ${Math.round(this.input.mousePointer.x)}, y: ${Math.round(this.input.mousePointer.y)}`
     );
 
     if (cursorKeys.up.isDown) {
@@ -71,10 +103,13 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   width: 800,
   height: 600,
   type: Phaser.AUTO,
+  audio: {
+    disableWebAudio: true
+  },
   physics: {
     default: 'arcade',
     arcade: {
-      debug: true
+      debug: false
     }
   },
   scene: GameScene,
@@ -83,3 +118,5 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(gameConfig);
+
+export default GameScene;
