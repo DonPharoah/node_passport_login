@@ -1,4 +1,7 @@
 import Building from './Entities/building';
+import Unit from './Entities/unit';
+import { GameObjects } from 'phaser';
+import { Body } from './types/matter';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -39,6 +42,7 @@ class GameScene extends Phaser.Scene {
   private square: Phaser.GameObjects.Rectangle & {
     body: Phaser.Physics.Arcade.Body;
   };
+  private testBuilding: Building;
   public howie: Phaser.Sound.BaseSound;
   public wilhelm: Phaser.Sound.BaseSound;
   public debugText: Phaser.GameObjects.Text;
@@ -66,8 +70,11 @@ class GameScene extends Phaser.Scene {
       key: 'building'
     });
 
+    this.testBuilding = new Building(this, 100, 100, 50, 50);
+
     this.input.on('pointerdown', (pointer) => {
-      new Building(this, this.input.mousePointer.x, this.input.mousePointer.y, 100, 100);
+      //new Building(this, this.input.mousePointer.x, this.input.mousePointer.y, 100, 100);
+      new Unit(this, this.input.mousePointer.x, this.input.mousePointer.y, this.testBuilding);
       this.howie.play();
     });
   }

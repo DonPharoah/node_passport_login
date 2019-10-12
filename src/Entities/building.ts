@@ -2,15 +2,17 @@ import GameScene from '../main';
 import * as short from 'short-uuid';
 const uuid = short();
 
-class Building {
-  private _rectangle: Phaser.GameObjects.Rectangle;
+class Building extends Phaser.GameObjects.GameObject {
+  public _rectangle: Phaser.GameObjects.Rectangle;
+
   // private ID: number;
   private static FILL_COLOR = 0xffffff;
   private static STROKE_COLOR = 0x888888;
 
   public description: string = 'Building';
-  private myPrivate: string;
+
   constructor(scene: GameScene, x: number, y: number, width?: number, height?: number) {
+    super(scene, 'building');
     this._rectangle = scene.add.rectangle(x, y, width, height, Building.FILL_COLOR);
     this._rectangle.setInteractive();
     this._rectangle.setDataEnabled();
@@ -26,7 +28,7 @@ class Building {
       }
     });
     this._rectangle.on('pointerover', () => {
-      scene.debugText.setText(`${this.description} ${this._rectangle.name}`);
+      scene.debugText.setText(`Description: ${this.description}`);
       this._rectangle.setData('selected', true);
       scene.wilhelm.play();
     });
