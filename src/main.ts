@@ -1,7 +1,9 @@
-import Building from './Entities/building';
-import Unit from './Entities/unit';
-import { GameObjects } from 'phaser';
-import { Body } from './types/matter';
+import * as Phaser from 'phaser';
+import * as dat from 'dat.gui';
+import Building from './entities/building';
+import Unit from './entities/unit';
+
+const gui = new dat.GUI();
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -57,8 +59,8 @@ class GameScene extends Phaser.Scene {
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
   }
   public create() {
-    this.howie = this.sound.add('howie', { volume: 0.5 });
-    this.wilhelm = this.sound.add('wilhelm', { volume: 0.5 });
+    this.howie = this.sound.add('howie', { volume: 0.3 });
+    this.wilhelm = this.sound.add('wilhelm', { volume: 0.3 });
     this.square = this.add.rectangle(400, 400, 100, 100, 0xffffff) as any;
     this.debugText = this.add.text(20, 20, 'Testing', { fontSize: '20px' });
     this.mousePointerText = this.add.text(20, 50, 'Testing', {
@@ -73,7 +75,6 @@ class GameScene extends Phaser.Scene {
     this.testBuilding = new Building(this, 100, 100, 50, 50);
 
     this.input.on('pointerdown', (pointer) => {
-      //new Building(this, this.input.mousePointer.x, this.input.mousePointer.y, 100, 100);
       new Unit(this, this.input.mousePointer.x, this.input.mousePointer.y, this.testBuilding);
       this.howie.play();
     });
@@ -81,7 +82,6 @@ class GameScene extends Phaser.Scene {
 
   public update() {
     const cursorKeys = this.input.keyboard.createCursorKeys();
-
     this.mousePointerText.setText(
       `x: ${Math.round(this.input.mousePointer.x)}, y: ${Math.round(this.input.mousePointer.y)}`
     );
@@ -107,8 +107,8 @@ class GameScene extends Phaser.Scene {
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
   input: { mouse: true },
-  width: 800,
-  height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight,
   type: Phaser.AUTO,
   audio: {
     disableWebAudio: true

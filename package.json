@@ -21,6 +21,8 @@
   "author": "David, Matt",
   "license": "MIT",
   "dependencies": {
+    "@types/dat.gui": "^0.7.4",
+    "dat.gui": "^0.7.6",
     "express": "^4.17.1",
     "phaser": "^3.19.0"
   },
