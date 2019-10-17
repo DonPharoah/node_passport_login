@@ -1,4 +1,4 @@
-import GameScene from '../main';
+import MainScene from '../scenes/mainScene';
 import * as short from 'short-uuid';
 const uuid = short();
 
@@ -11,7 +11,7 @@ class Building extends Phaser.GameObjects.GameObject {
 
   public description: string = 'Building';
 
-  constructor(scene: GameScene, x: number, y: number, width?: number, height?: number) {
+  constructor(scene: MainScene, x: number, y: number, width?: number, height?: number) {
     super(scene, 'building');
     this._rectangle = scene.add.rectangle(x, y, width, height, Building.FILL_COLOR);
     this._rectangle.setInteractive();

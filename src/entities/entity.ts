@@ -1,4 +1,4 @@
-import GameScene from '../main';
+import MainScene from '../scenes/mainScene';
 import * as short from 'short-uuid';
 const uuid = short();
 

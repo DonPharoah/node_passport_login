@@ -7,7 +7,7 @@
     "build": "webpack",
     "watch": "webpack --watch",
     "dev-server": "webpack-dev-server",
-    "socket-server": "nodemon ./server/server.js",
+    "server": "nodemon ./server/server.js",
     "start": "npm run dev-server"
   },
   "prettier": {
@@ -24,9 +24,12 @@
     "@types/dat.gui": "^0.7.4",
     "dat.gui": "^0.7.6",
     "express": "^4.17.1",
-    "phaser": "^3.19.0"
+    "phaser": "^3.19.0",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
+    "@types/socket.io": "^2.1.4",
+    "@types/socket.io-client": "^1.4.32",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.4",
     "nodemon": "^1.19.3",

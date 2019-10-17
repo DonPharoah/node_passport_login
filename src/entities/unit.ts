@@ -1,4 +1,4 @@
-import GameScene from '../main';
+import MainScene from '../scenes/mainScene';
 import Building from './building';
 import * as short from 'short-uuid';
 const uuid = short();
@@ -10,7 +10,7 @@ class Unit extends Phaser.GameObjects.GameObject {
   };
   private static FILL_COLOR = 0xffffff;
 
-  constructor(scene: GameScene, x: number, y: number, target?: Building) {
+  constructor(scene: MainScene, x: number, y: number, target?: Building) {
     super(scene, 'unit');
     this._rectangle = scene.add.rectangle(x, y, 10, 10, Unit.FILL_COLOR) as any;
     scene.physics.add.existing(this._rectangle);
