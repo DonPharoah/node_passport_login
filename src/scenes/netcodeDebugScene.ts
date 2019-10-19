@@ -19,6 +19,8 @@ class NetcodeDebugScene extends Phaser.Scene {
     this.requestChangeUserName = () => context.socket.emit('changeName', this.genericInput);
     this.setUserName = () => context.data.set('userName', this.genericInput);
     this.getAllUsers = () => context.socket.emit('getAllUserNames');
+    this.connect = () => context.socket.open();
+    this.disconnect = () => context.socket.emit('playerDisconnect');
     this.startPingServer = () => {
       context.startPingServer();
     };
@@ -50,13 +52,15 @@ class NetcodeDebugScene extends Phaser.Scene {
       this.debugFunctionsFolder.add(this.optionsInstance, 'setUserName');
       this.debugFunctionsFolder.add(this.optionsInstance, 'requestChangeUserName');
       this.debugFunctionsFolder.add(this.optionsInstance, 'getAllUsers');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'connect');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'disconnect');
       this.debugFunctionsFolder.add(this.optionsInstance, 'startPingServer');
       this.debugFunctionsFolder.add(this.optionsInstance, 'stopPingServer');
     } catch (e) {
       console.log('Debug folder already exists');
     }
     this.socket.on('connection', (player: string) => {
-      this.showMessage(`Player: ${player} disconnected.`);
+      this.showMessage(`Player: ${player} connected.`);
     });
     this.socket.on('disconnect', (player: string) => {
       this.showMessage(`Player: ${player} disconnected.`);

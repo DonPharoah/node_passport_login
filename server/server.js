@@ -22,9 +22,9 @@ debugNamespace.on('connection', (socket) => {
   console.log('user connected');
   players[socket.id] = {
     playerId: socket.id,
-    playerName: ''
+    playerName: `Player${Math.round(Math.random() * 1000) + 1}`
   };
-  socket.broadcast.emit('connection', players[socket.id].playerId);
+  socket.broadcast.emit('connection', players[socket.id].playerName);
 
   socket.on('changeName', (name) => {
     players[socket.id].playerName = name;
@@ -36,8 +36,11 @@ debugNamespace.on('connection', (socket) => {
     socket.emit('getAllUserNames', Object.values(players).map((player) => player.playerName));
   });
 
+  socket.on('playerDisconnect', () => {
+    socket.disconnect();
+  });
   socket.on('disconnect', () => {
-    socket.console.log('user disconnected');
+    console.log('user disconnected');
     debugNamespace.emit('disconnect', players[socket.id].playerName);
     delete players[socket.id];
   });
