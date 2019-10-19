@@ -3,10 +3,21 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io').listen(server);
 
-let numUsers = 0;
 let players = {};
+const pingNamespace = io.of('/ping-namespace');
+pingNamespace.on('connection', (socket) => {
+  socket.on('pingEvent', () => {
+    socket.emit('pongEvent');
+  });
+});
+// const pingTimer = setInterval(() => {
+//   console.log('sending ping...');
+//   if (Object.keys(players).length > 0) {
+//     pingNamespace.emit('ping', 'Ping');
+//   }
+// }, 3000);
 
-let debugNamespace = io.of('/debug-namespace');
+const debugNamespace = io.of('/debug-namespace');
 debugNamespace.on('connection', (socket) => {
   console.log('user connected');
   players[socket.id] = {
@@ -22,15 +33,11 @@ debugNamespace.on('connection', (socket) => {
   });
 
   socket.on('getAllUserNames', () => {
-    socket.emit('getAllUserNames', players);
+    socket.emit('getAllUserNames', Object.values(players).map((player) => player.playerName));
   });
-  setInterval(() => {
-    console.log('sending ping...');
-    socket.broadcast.emit('status', 'Ping');
-  }, 5000);
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    socket.console.log('user disconnected');
     debugNamespace.emit('disconnect', players[socket.id].playerName);
     delete players[socket.id];
   });

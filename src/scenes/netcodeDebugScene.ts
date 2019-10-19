@@ -7,7 +7,11 @@ class NetcodeDebugScene extends Phaser.Scene {
   public errorText: Phaser.GameObjects.Text;
   public userNameText: Phaser.GameObjects.Text;
   private debugGuiFolder;
+  private debugFunctionsFolder;
   public socket: SocketIOClient.Socket;
+  public pingSocket: SocketIOClient.Socket;
+  public pingStartTime;
+  public pingInterval;
   private debugGuiOptions = function(context: NetcodeDebugScene) {
     this.genericInput = 'defaultText';
     this.sendMessageEvent = () => context.showMessage(this.genericInput);
@@ -15,6 +19,10 @@ class NetcodeDebugScene extends Phaser.Scene {
     this.requestChangeUserName = () => context.socket.emit('changeName', this.genericInput);
     this.setUserName = () => context.data.set('userName', this.genericInput);
     this.getAllUsers = () => context.socket.emit('getAllUserNames');
+    this.startPingServer = () => {
+      context.startPingServer();
+    };
+    this.stopPingServer = () => context.stopPingServer();
   };
   private optionsInstance;
 
@@ -24,47 +32,57 @@ class NetcodeDebugScene extends Phaser.Scene {
 
   create() {
     this.data.set('userName', 'Default User Name');
+    this.pingSocket = io('http://localhost:3000/ping-namespace');
     this.socket = io('http://localhost:3000/debug-namespace');
     this.titleText = this.add.text(20, 20, 'In Debug Scene', { fontSize: '20px' });
     this.debugText = this.add.text(20, 50, 'Testing', { fontSize: '20px' });
-    this.userNameText = this.add.text(20, 80, 'Default User Name', { fontSize: '20px' });
+    this.userNameText = this.add.text(20, 80, `Player name: ${this.data.get('userName')}`, {
+      fontSize: '20px'
+    });
     this.errorText = this.add.text(20, 140, '', { fontSize: '20px', color: 'red' });
     try {
       this.optionsInstance = new this.debugGuiOptions(this);
       this.debugGuiFolder = debugGui.addFolder('Debug Gui');
       this.debugGuiFolder.add(this.optionsInstance, 'genericInput');
-      this.debugGuiFolder.add(this.optionsInstance, 'sendMessageEvent');
-      this.debugGuiFolder.add(this.optionsInstance, 'sendTestErrorEvent');
-      this.debugGuiFolder.add(this.optionsInstance, 'setUserName');
-      this.debugGuiFolder.add(this.optionsInstance, 'requestChangeUserName');
-      this.debugGuiFolder.add(this.optionsInstance, 'getAllUsers');
+      this.debugFunctionsFolder = this.debugGuiFolder.addFolder('Debug Functions');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'sendMessageEvent');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'sendTestErrorEvent');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'setUserName');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'requestChangeUserName');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'getAllUsers');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'startPingServer');
+      this.debugFunctionsFolder.add(this.optionsInstance, 'stopPingServer');
     } catch (e) {
       console.log('Debug folder already exists');
     }
-    this.socket.on('connection', (player) => {
+    this.socket.on('connection', (player: string) => {
       this.showMessage(`Player: ${player} disconnected.`);
     });
-    this.socket.on('disconnect', (player) => {
+    this.socket.on('disconnect', (player: string) => {
       this.showMessage(`Player: ${player} disconnected.`);
     });
-    this.socket.on('status', (message) => {
+    this.socket.on('status', (message: string) => {
       this.showMessage(message);
     });
-    this.socket.on('errorStatus', (errorMessage) => {
+    this.socket.on('errorStatus', (errorMessage: string) => {
       this.showError(errorMessage);
     });
-    this.socket.on('getAllUserNames', (userNames) => {
+    this.socket.on('getAllUserNames', (userNames: string[]) => {
       console.log(userNames);
     });
-    this.socket.on('nameChangeOK', (newName) => {
+    this.socket.on('nameChangeOK', (newName: string) => {
       this.data.set('userName', newName);
       this.showMessage(`Server allowed name change to: ${newName}`);
+    });
+    this.pingSocket.on('pongEvent', () => {
+      let latency = Date.now() - this.pingStartTime;
+      this.showMessage(`latency: ${latency}ms`);
     });
 
     this.events.on(
       'changedata-userName',
       (parent, value) => {
-        this.userNameText.setText(value);
+        this.userNameText.setText(`Player name: ${value}`);
         // this.socket.emit('changeName', value);
       },
       this
@@ -96,6 +114,15 @@ class NetcodeDebugScene extends Phaser.Scene {
       duration: 5000,
       ease: 'Quad'
     });
+  }
+  startPingServer() {
+    this.pingInterval = setInterval(() => {
+      this.pingStartTime = Date.now();
+      this.pingSocket.emit('pingEvent');
+    }, 2000);
+  }
+  stopPingServer() {
+    clearInterval(this.pingInterval);
   }
 }
 export default NetcodeDebugScene;
