@@ -1,49 +1,44 @@
 const express = require('express');
+const path = require('path');
+const http = require('http');
+const compression = require('compression');
+const DataUri = require('datauri');
+const jsdom = require('jsdom');
+const socketIo = require('socket.io');
+const { JSDOM } = jsdom;
 const app = express();
-const server = require('http').createServer(app);
-const io = require('socket.io').listen(server);
+const datauri = new DataUri();
+const server = http.createServer(app);
+const io = socketIo.listen(server);
 
-let players = {};
-const pingNamespace = io.of('/ping-namespace');
-pingNamespace.on('connection', (socket) => {
-  socket.on('pingEvent', () => {
-    socket.emit('pongEvent');
-  });
-});
-// const pingTimer = setInterval(() => {
-//   console.log('sending ping...');
-//   if (Object.keys(players).length > 0) {
-//     pingNamespace.emit('ping', 'Ping');
-//   }
-// }, 3000);
+app.use(compression());
 
-const debugNamespace = io.of('/debug-namespace');
-debugNamespace.on('connection', (socket) => {
-  console.log('user connected');
-  players[socket.id] = {
-    playerId: socket.id,
-    playerName: `Player${Math.round(Math.random() * 1000) + 1}`
-  };
-  socket.broadcast.emit('connection', players[socket.id].playerName);
-
-  socket.on('changeName', (name) => {
-    players[socket.id].playerName = name;
-    socket.emit('nameChangeOK', players[socket.id].playerName);
-    // socket.emit('errorStatus', 'Could not change name');
-  });
-
-  socket.on('getAllUserNames', () => {
-    socket.emit('getAllUserNames', Object.values(players).map((player) => player.playerName));
-  });
-
-  socket.on('playerDisconnect', () => {
-    socket.disconnect();
-  });
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-    debugNamespace.emit('disconnect', players[socket.id].playerName);
-    delete players[socket.id];
-  });
-});
-
-server.listen(3000, () => console.log('Listening on port 3000...'));
+function setupAuthoritativePhaser() {
+  JSDOM.fromFile(path.resolve(__dirname, 'dist/index.html'), {
+    // To run scripts in the html file
+    runScripts: 'dangerously',
+    // Also load supported external resources
+    resources: 'usable',
+    // So requestAnimationFrame events can fire
+    pretendToBeVisual: true
+  })
+    .then((dom) => {
+      // override two functions: createObjectURL and revokeObjectURL
+      dom.window.URL.createObjectURL = (blob) => {
+        if (blob) {
+          return datauri.format(blob.type, blob[Object.getOwnPropertySymbols(blob)[0]]._buffer).content;
+        }
+      };
+      dom.window.URL.revokeObjectURL = (objectURL) => {};
+      dom.window.gameLoaded = () => {
+        server.listen(3000, () => {
+          console.log(`Listening on 3000`);
+        });
+      };
+      dom.window.io = io;
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+}
+setupAuthoritativePhaser();

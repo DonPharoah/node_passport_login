@@ -1,0 +1,53 @@
+{
+  "name": "phaser-rts-server",
+  "version": "1.0.0",
+  "description": "Server side of phaser-rts-game",
+  "main": "./src/server.ts",
+  "scripts": {
+    "tsc": "tsc",
+    "start:dev": "webpack --config webpack.dev.js",
+    "run:dev": "nodemon --inspect server.js",
+    "start": "npm run start:dev"
+  },
+  "prettier": {
+    "semi": true,
+    "arrowParens": "always",
+    "printWidth": 110,
+    "singleQuote": true,
+    "tabWidth": 2
+  },
+  "author": "David, Matt",
+  "license": "MIT",
+  "dependencies": {
+    "@types/dat.gui": "^0.7.4",
+    "canvas": "^2.6.0",
+    "compression": "^1.7.4",
+    "dat.gui": "^0.7.6",
+    "datauri": "^2.0.0",
+    "express": "^4.17.1",
+    "jsdom": "^15.2.0",
+    "phaser": "^3.19.0",
+    "socket.io": "^2.3.0",
+    "webpack-dev-middleware": "^3.7.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.1",
+    "@types/socket.io": "^2.1.4",
+    "@types/socket.io-client": "^1.4.32",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.0.4",
+    "fork-ts-checker-webpack-plugin": "^1.5.1",
+    "nodemon": "^1.19.3",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.0",
+    "ts-loader": "^6.2.0",
+    "ts-node": "^8.4.1",
+    "ts-node-dev": "^1.0.0-pre.43",
+    "typescript": "^3.6.3",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2",
+    "webpack-node-externals": "^1.7.2",
+    "webpack-shell-plugin": "^0.5.0"
+  }
+}

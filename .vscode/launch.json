@@ -5,11 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
+      "type": "chrome",
       "request": "launch",
-      "name": "Launch Program",
-      "program": "${workspaceFolder}\\src\\main.ts",
-      "outFiles": ["${workspaceFolder}/**/*.js"]
+      "name": "Launch Chrome Against localhost",
+      "webRoot": "${workspaceFolder}",
+      "url": "http://localhost:8080",
+      "sourceMaps": true
     },
     {
       "type": "node",
