@@ -13,10 +13,19 @@ class Unit extends Phaser.GameObjects.GameObject {
     this._rectangle = scene.add.rectangle(x, y, 10, 10, Unit.FILL_COLOR) as any;
     scene.physics.add.existing(this._rectangle);
     this._target = target;
-    const targetPosition = this._target.rectangle.getCenter();
-    const currentPosition = this._rectangle.getCenter();
-    const distance = targetPosition.subtract(currentPosition);
-    this._rectangle.body.setVelocity(distance.x, distance.y);
+    if (target) {
+      const targetPosition = this._target.rectangle.getCenter();
+      const currentPosition = this._rectangle.getCenter();
+      const distance = targetPosition.subtract(currentPosition);
+      this._rectangle.body.setVelocity(distance.x, distance.y);
+    } else {
+      this._rectangle.body.setVelocity(10, 20);
+    }
+  }
+
+  public getPosition() {
+    const position = this._rectangle.getCenter();
+    return { x: position.x, y: position.y };
   }
 
   //public update() {}

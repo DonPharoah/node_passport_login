@@ -9,7 +9,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   height: window.innerHeight,
   type: Phaser.AUTO,
   audio: {
-    disableWebAudio: true
+    disableWebAudio: false
   },
   physics: {
     default: 'arcade',
