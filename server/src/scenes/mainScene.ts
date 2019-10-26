@@ -1,6 +1,9 @@
 import Building from '../entities/building';
 import Unit from '../entities/unit';
-// import io = require('socket.io');
+import { Socket } from 'dgram';
+import io = require('socket.io');
+import { Physics, GameObjects } from 'phaser';
+import * as short from 'short-uuid'
 // const io = socketIo.listen(server);
 
 class MainScene extends Phaser.Scene {
@@ -8,15 +11,24 @@ class MainScene extends Phaser.Scene {
     body: Phaser.Physics.Arcade.Body;
   };
   public players: any = {};
+  public playerGroup: Phaser.GameObjects.Group;
+  public buildingGroup: Phaser.GameObjects.Group;
+  public unitGroup: Phaser.GameObjects.Group;
 
-  public buildings: Phaser.GameObjects.Group;
+  public testUnit: Unit;
+
+  private seed: any ;
 
   constructor() {
     super({ key: 'mainScene', active: true });
+    this.seed = short();
   }
   public preload() {}
 
   public create() {
+    this.playerGroup = this.add.group({ name: 'playerGroup' });
+    this.testUnit = new Unit(this, 0, 0);
+
     // @ts-ignore
     const pingNamespace = io.of('/ping-namespace');
     pingNamespace.on('connection', (socket) => {
@@ -26,8 +38,8 @@ class MainScene extends Phaser.Scene {
     });
 
     // @ts-ignore
-    const debugNamespace = io.of('/main-namespace');
-    debugNamespace.on('connection', (socket) => {
+    // const debugNamespace = io.of('/main-namespace');
+    io.on('connection', (socket) => {
       console.log('user connected');
       this.players[socket.id] = {
         playerId: socket.id,
@@ -36,6 +48,7 @@ class MainScene extends Phaser.Scene {
       socket.broadcast.emit('connection', this.players[socket.id].playerName);
 
       socket.on('changeName', (name) => {
+        this.addUnitToSceneAndNotify(new Unit(this,50,50));
         this.players[socket.id].playerName = name;
         socket.emit('nameChangeOK', this.players[socket.id].playerName);
         // socket.emit('errorStatus', 'Could not change name');
@@ -50,12 +63,31 @@ class MainScene extends Phaser.Scene {
       });
       socket.on('disconnect', () => {
         console.log('user disconnected');
-        debugNamespace.emit('disconnect', this.players[socket.id].playerName);
+        io.emit('disconnect', this.players[socket.id].playerName);
         delete this.players[socket.id];
       });
     });
   }
 
-  public update() {}
+  public sendUnitPositions() {
+    //for each unit on map, key value pair for owning player ID
+    return this.testUnit.getPosition();
+  }
+
+  public addUnitToSceneAndNotify( newObject: Phaser.GameObjects.GameObject ) {
+    this.add.existing(newObject);
+    const objectID = this.seed.generate();
+    io.emit('newUnitAdded', objectID );
+  }
+
+  public serverTick() {
+    setInterval(() => {
+      io.emit('serverTick', this.sendUnitPositions());}, 1000 / 30);
+    );
+  }
+
+  public update() {
+    this.physics.world.wrap(this.testUnit, 5);
+  }
 }
 export default MainScene;
