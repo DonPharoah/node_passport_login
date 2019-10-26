@@ -1,7 +1,6 @@
 import Building from '../entities/building';
 import Unit from '../entities/unit';
-// import io = require('socket.io');
-// const io = socketIo.listen(server);
+import * as socketIo from 'socket.io';
 
 class MainScene extends Phaser.Scene {
   private square: Phaser.GameObjects.Rectangle & {
