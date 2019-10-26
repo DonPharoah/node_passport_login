@@ -6,7 +6,7 @@
   "scripts": {
     "tsc": "tsc",
     "start:dev": "webpack --config webpack.dev.js",
-    "run:dev": "nodemon --inspect server.js",
+    "run:dev": "node server.js",
     "start": "npm run start:dev"
   },
   "prettier": {
@@ -40,6 +40,7 @@
     "nodemon": "^1.19.3",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.0",
+    "short-uuid": "^3.1.1",
     "ts-loader": "^6.2.0",
     "ts-node": "^8.4.1",
     "ts-node-dev": "^1.0.0-pre.43",

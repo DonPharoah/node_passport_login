@@ -33,7 +33,7 @@ class Building extends Phaser.GameObjects.GameObject {
     });
 
     // this.ID = Phaser.Math.Between(1, 100);
-    scene.buildings.add(this._rectangle);
+    scene.buildingGroup.add(this._rectangle);
   }
 
   get rectangle() {

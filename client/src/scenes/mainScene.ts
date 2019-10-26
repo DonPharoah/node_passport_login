@@ -45,8 +45,8 @@ class MainScene extends Phaser.Scene {
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
   }
   public create() {
-    this.pingSocket = io('http://localhost:3000/ping-namespace');
-    this.socket = io('http://localhost:3000/main-namespace');
+    this.pingSocket = io('http://localhost:4000/ping-namespace');
+    this.socket = io('http://localhost:4000');
     this.howie = this.sound.add('howie', { volume: 0.3 });
     this.wilhelm = this.sound.add('wilhelm', { volume: 0.3 });
     this.square = this.add.rectangle(400, 400, 100, 100, 0xffffff) as any;
