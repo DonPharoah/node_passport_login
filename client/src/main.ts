@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import debugGui from './utils/debugGui';
+import { initDebugGui_sceneSelect } from './utils/debugGui';
 import MainScene from './scenes/mainScene';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
@@ -9,7 +9,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   height: window.innerHeight,
   type: Phaser.AUTO,
   audio: {
-    disableWebAudio: false
+    disableWebAudio: true
   },
   physics: {
     default: 'arcade',
@@ -24,22 +24,8 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 
 const game = new Phaser.Game(gameConfig);
 
-const setupDebugGui = () => {
-  let stopAllScenes = () => game.scene.getScenes(true).forEach((currentScene) => currentScene.scene.stop());
-  let options = {
-    startMainScene: function() {
-      stopAllScenes();
-      game.scene.start('mainScene');
-    },
-    startDebugScene: function() {
-      stopAllScenes();
-      game.scene.start('debugScene');
-    }
-  };
-  debugGui.add(options, 'startMainScene');
-  // debugGui.add(options, 'startDebugScene');
-};
-setupDebugGui();
+initDebugGui_sceneSelect(game);
+
 /*
     ( uwu *pounces you* )
 

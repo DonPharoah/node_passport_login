@@ -1,38 +1,21 @@
 import Building from '../entities/building';
 import Unit from '../entities/unit';
-import debugGui from '../utils/debugGui';
+import { initDebugGui_sceneCommands } from '../utils/debugGui';
 import * as io from 'socket.io-client';
 
 class MainScene extends Phaser.Scene {
-  private square: Phaser.GameObjects.Rectangle & {
-    body: Phaser.Physics.Arcade.Body;
-  };
+  private box: Phaser.GameObjects.Rectangle;
+  private ground: Phaser.GameObjects.Rectangle;
+  private isConnected: boolean = false;
   private testBuilding: Building;
   public titleText: Phaser.GameObjects.Text;
   public debugText: Phaser.GameObjects.Text;
   public errorText: Phaser.GameObjects.Text;
   public userNameText: Phaser.GameObjects.Text;
-  private debugGuiFolder;
-  private debugFunctionsFolder;
   public socket: SocketIOClient.Socket;
   public pingSocket: SocketIOClient.Socket;
   public pingStartTime;
   public pingInterval;
-  private debugGuiOptions = function(context: MainScene) {
-    this.genericInput = 'defaultText';
-    this.sendMessageEvent = () => context.showMessage(this.genericInput);
-    this.sendTestErrorEvent = () => context.showError(this.genericInput);
-    this.requestChangeUserName = () => context.socket.emit('changeName', this.genericInput);
-    this.setUserName = () => context.data.set('userName', this.genericInput);
-    this.getAllUsers = () => context.socket.emit('getAllUserNames');
-    this.connect = () => context.socket.open();
-    this.disconnect = () => context.socket.emit('playerDisconnect');
-    this.startPingServer = () => {
-      context.startPingServer();
-    };
-    this.stopPingServer = () => context.stopPingServer();
-  };
-  private optionsInstance;
   public howie: Phaser.Sound.BaseSound;
   public wilhelm: Phaser.Sound.BaseSound;
   public buildings: Phaser.GameObjects.Group;
@@ -45,12 +28,13 @@ class MainScene extends Phaser.Scene {
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
   }
   public create() {
-    this.pingSocket = io('http://localhost:4000/ping-namespace');
-    this.socket = io('http://localhost:4000');
+    this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
+    this.socket = io.connect('http://localhost:4000');
     this.howie = this.sound.add('howie', { volume: 0.3 });
     this.wilhelm = this.sound.add('wilhelm', { volume: 0.3 });
-    this.square = this.add.rectangle(400, 400, 100, 100, 0xffffff) as any;
-    this.physics.add.existing(this.square);
+    this.box = this.add.rectangle(400, 200, 80, 80, 0xffffff);
+    this.ground = this.add.rectangle(400, 500, 500, 30, 0xffffff);
+    // this.physics.add.existing(this.square);
     this.buildings = this.add.group([], {
       name: 'buildings',
       key: 'building'
@@ -63,23 +47,13 @@ class MainScene extends Phaser.Scene {
       fontSize: '20px'
     });
     this.errorText = this.add.text(20, 140, '', { fontSize: '20px', color: 'red' });
+
     try {
-      this.optionsInstance = new this.debugGuiOptions(this);
-      this.debugGuiFolder = debugGui.addFolder('Debug Gui');
-      this.debugGuiFolder.add(this.optionsInstance, 'genericInput');
-      this.debugFunctionsFolder = this.debugGuiFolder.addFolder('Debug Functions');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'sendMessageEvent');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'sendTestErrorEvent');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'setUserName');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'requestChangeUserName');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'getAllUsers');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'connect');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'disconnect');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'startPingServer');
-      this.debugFunctionsFolder.add(this.optionsInstance, 'stopPingServer');
+      initDebugGui_sceneCommands(this);
     } catch (e) {
       console.log('Debug folder already exists');
     }
+
     this.socket.on('connection', (player: string) => {
       this.showMessage(`Player: ${player} connected.`);
     });
@@ -99,6 +73,11 @@ class MainScene extends Phaser.Scene {
       this.data.set('userName', newName);
       this.showMessage(`Server allowed name change to: ${newName}`);
     });
+    this.socket.on('serverStatusUpdate', (position) => {
+      // console.log(position);
+      this.updateSquarePosition(position);
+    });
+
     this.pingSocket.on('pongEvent', () => {
       let latency = Date.now() - this.pingStartTime;
       this.showMessage(`latency: ${latency}ms`);
@@ -121,21 +100,21 @@ class MainScene extends Phaser.Scene {
   public update() {
     const cursorKeys = this.input.keyboard.createCursorKeys();
 
-    if (cursorKeys.up.isDown) {
-      this.square.body.setVelocityY(-500);
-    } else if (cursorKeys.down.isDown) {
-      this.square.body.setVelocityY(500);
-    } else {
-      this.square.body.setVelocityY(0);
-    }
+    // if (cursorKeys.up.isDown) {
+    //   this.square.body.setVelocityY(-500);
+    // } else if (cursorKeys.down.isDown) {
+    //   this.square.body.setVelocityY(500);
+    // } else {
+    //   this.square.body.setVelocityY(0);
+    // }
 
-    if (cursorKeys.right.isDown) {
-      this.square.body.setVelocityX(500);
-    } else if (cursorKeys.left.isDown) {
-      this.square.body.setVelocityX(-500);
-    } else {
-      this.square.body.setVelocityX(0);
-    }
+    // if (cursorKeys.right.isDown) {
+    //   this.square.body.setVelocityX(500);
+    // } else if (cursorKeys.left.isDown) {
+    //   this.square.body.setVelocityX(-500);
+    // } else {
+    //   this.square.body.setVelocityX(0);
+    // }
   }
   showMessage(message = 'Default text') {
     console.log(message);
@@ -160,6 +139,11 @@ class MainScene extends Phaser.Scene {
       duration: 5000,
       ease: 'Quad'
     });
+  }
+  updateSquarePosition(position) {
+    const { x, y } = position;
+    this.box.x = x;
+    this.box.y = y;
   }
   startPingServer() {
     this.pingInterval = setInterval(() => {

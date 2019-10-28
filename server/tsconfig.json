@@ -2,7 +2,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es5",
-    "sourceMap": true
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["node_modules/@types", "src/interfaces"],
+    "lib": ["es2015", "es2017", "es6"]
   },
   "include": ["src/**/*"]
 }
