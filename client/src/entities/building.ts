@@ -10,7 +10,7 @@ class Building extends Phaser.GameObjects.GameObject implements Selectable {
   private static FILL_COLOR = 0xffffff;
   private static STROKE_COLOR = 0x888888;
 
-  public description: string = 'Building';
+  public description: string = 'Building ';
   public clientScene: ClientScene;
 
   constructor(scene: ClientScene, x: number, y: number, id: string, ownerId: string) {
@@ -27,12 +27,12 @@ class Building extends Phaser.GameObjects.GameObject implements Selectable {
 
     this._rectangle.on('pointerover', () => {
       scene.mouseOverEvent(this);
-      this._rectangle.strokeColor = 0xaa0000;
+      //this._rectangle.strokeColor = 0xaa0000;
       //scene.wilhelm.play();
     });
     this._rectangle.on('pointerout', () => {
       scene.mouseOffEvent(this);
-      this._rectangle.strokeColor = Building.STROKE_COLOR;
+      //this._rectangle.strokeColor = Building.STROKE_COLOR;
     });
 
     // this.ID = Phaser.Math.Between(1, 100);
@@ -41,11 +41,11 @@ class Building extends Phaser.GameObjects.GameObject implements Selectable {
 
   public selectedEvent() {
     this._rectangle.strokeColor = 0x0000ff;
-    this.clientScene.debugText.setText(`Selected: ${this.description}`);
+    this.clientScene.debugText.setText(`Selected: ${this.description + this.ownerId}`);
     return this;
   }
   public deselectedEvent() {
-    this._rectangle.strokeColor = 0xaa0000;
+    this._rectangle.strokeColor = 0x888888;
     return this;
   }
 

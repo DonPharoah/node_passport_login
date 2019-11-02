@@ -101,23 +101,21 @@ class ClientScene extends Phaser.Scene {
       let { x, y } = pointer;
       const length = this.mouseOvers.length;
       const i = this.mouseOversIndex;
-      let previous;
       if (length > 0) {
         //mouse is over objects
-        // deselect all
-        this.mouseOvers.forEach((current: Selectable) => {
-          current.deselectedEvent();
-        });
-        this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
-        previous = i === 0 ? length - 1 : i - 1;
+        let previouslySelected = this.currentSelected[0];
         this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
+        previouslySelected.deselectedEvent();
+        this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
       } else {
         this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: x, y: y });
+        this.debugText.setText('Nothing');
       }
     });
   }
   public mouseOverEvent(objectMousedOver: Selectable) {
     this.mouseOvers.push(objectMousedOver);
+    this.mouseOversIndex = 0;
     //this.debugText.setText(`Selected: ${this.mouseOvers.length}`);
   }
   public mouseOffEvent(objectMousedOff: Selectable) {
@@ -125,12 +123,7 @@ class ClientScene extends Phaser.Scene {
     if (i > -1) {
       this.mouseOvers.splice(i, 1);
     }
-    if (this.mouseOvers.length === 0) {
-      this.mouseOversIndex = 0;
-    }
-    this.mouseOvers.forEach((current: Selectable) => {
-      current.deselectedEvent();
-    });
+
     this.mouseOversIndex = 0;
     //this.debugText.setText(`Selected: ${this.mouseOvers.length}`);
   }
