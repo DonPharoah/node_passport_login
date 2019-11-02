@@ -1,20 +1,26 @@
-// import Unit from '../entities/unit';
 import { getIo } from '../utils/server';
-import * as short from 'short-uuid';
+import { getSeed } from '../utils/seed';
 import { Engine, World, Bodies, Body } from 'matter-js';
+import Building from '../entities/building';
+import Unit from '../entities/unit';
+import { Events } from '../interfaces/eventConstants';
 
 class ServerScene {
   public players: Players = {};
+  public units: Units = {};
+  public buildings: Buildings = {};
+
   private io = getIo();
-  private seed: short.Translator;
+
   private pingNamespace: SocketIO.Namespace;
   private engine: Engine;
   private box: Body;
   private ground: Body;
+  private world: World;
+
   // public testUnit: Unit;
 
   constructor() {
-    this.seed = short();
     this.init();
   }
 
@@ -29,72 +35,84 @@ class ServerScene {
   public sendUnitPositions() {
     //for each unit on map, key value pair for owning player ID
     // return this.testUnit.getPosition();
-    const { x, y } = this.box.position;
-    return { x, y };
+    // const { x, y } = this.box.position;
+    // return { x, y };
   }
 
-  public addUnitToSceneAndNotify(newUnit) {
-    const objectID = this.seed.generate();
-    this.io.emit('newUnitAdded', objectID);
+  public addEntityToSceneAndNotify(group, newEntity) {
+    const { x, y } = newEntity.body.position;
+    console.log(newEntity.id);
+    console.log('x and y: ', x, y);
+    group[newEntity.id] = newEntity;
+    World.add(this.world, newEntity.body);
+    this.io.emit(Events.NEW_UNIT_ADDED, { x, y, id: newEntity.id });
   }
 
   public handleSockets() {
     this.pingNamespace = this.io.of('/ping-namespace');
-    this.pingNamespace.on('connection', (socket) => {
-      socket.on('pingEvent', () => {
-        socket.emit('pongEvent');
+    this.pingNamespace.on(Events.CONNECTION, (socket) => {
+      socket.on(Events.PING_EVENT, () => {
+        socket.emit(Events.PONG_EVENT);
       });
     });
 
-    this.io.on('connection', (socket) => {
+    this.io.on(Events.CONNECTION, (socket) => {
       console.log('user connected');
       this.players[socket.id] = {
-        playerId: socket.id,
-        playerName: `Player${Math.round(Math.random() * 1000) + 1}`
+        id: socket.id,
+        name: `Player${Math.round(Math.random() * 1000) + 1}`
       };
-      socket.broadcast.emit('connection', this.players[socket.id].playerName);
+      socket.broadcast.emit(Events.CONNECTION, this.players[socket.id].name);
 
-      socket.on('changeName', (name) => {
+      socket.on(Events.CHANGE_NAME, (name) => {
         // this.addUnitToSceneAndNotify(new Unit(this, 50, 50));
-        this.players[socket.id].playerName = name;
-        socket.emit('nameChangeOK', this.players[socket.id].playerName);
+        this.players[socket.id].name = name;
+        socket.emit(Events.CHANGE_NAME_OK, this.players[socket.id].name);
         // socket.emit('errorStatus', 'Could not change name');
       });
 
-      socket.on('getAllUserNames', () => {
-        socket.emit('getAllUserNames', Object.values(this.players).map((player) => player.playerName));
+      socket.on(Events.GET_ALL_USER_NAMES, () => {
+        socket.emit(Events.GET_ALL_USER_NAMES, Object.values(this.players).map((player) => player.name));
       });
 
-      socket.on('playerDisconnect', () => {
+      socket.on(Events.PLAYER_DISCONNECTED, () => {
         socket.disconnect();
       });
-      socket.on('disconnect', () => {
+      socket.on(Events.DISCONNECT, () => {
         console.log('user disconnected');
-        this.io.emit('disconnect', this.players[socket.id].playerName);
+        this.io.emit(Events.DISCONNECT, this.players[socket.id].name);
         delete this.players[socket.id];
+      });
+      socket.on(Events.ISSUE_UNIT_COMMAND, () => {});
+
+      socket.on(Events.PLAYER_CONSTRUCT_BUILDING, (data: { x: number; y: number }) => {
+        const { x, y } = data;
+        const newBuilding = new Building({ x, y }, 30, socket.id);
+        this.addEntityToSceneAndNotify(this.buildings, newBuilding);
       });
     });
   }
 
   public startServerUpdateTick() {
     setInterval(() => {
-      this.io.emit('serverStatusUpdate', this.sendUnitPositions());
+      this.io.emit(Events.SERVER_STATUS_UPDATE, this.sendUnitPositions());
     }, 1000 / 30);
   }
 
   public initPhysics() {
     this.engine = Engine.create();
-    const { world } = this.engine;
-    this.box = Bodies.rectangle(400, 200, 80, 80);
-    this.ground = Bodies.rectangle(400, 500, 500, 30, { isStatic: true });
+    this.world = this.engine.world;
+    // this.box = Bodies.rectangle(400, 200, 80, 80);
+    // this.ground = Bodies.rectangle(400, 500, 500, 30, { isStatic: true });
     // this.add.rectangle(400, 50, 500, 30, 0xffffff);
-    World.add(world, [this.box, this.ground]);
+    // this.addEntityToSceneAndNotify(this.box);
+    // World.add(world, [this.box, this.ground]);
   }
 
   public startPhysicsUpdate() {
-    // Body.applyForce(this.box, { x: 400, y: 200 }, { x: 400.5, y: 200.5 });
     setInterval(() => {
-      this.box.position.x += 0.05;
+      // Body.applyForce(this.box, { x: 0, y: 0 }, { x: 0, y: -0.1 });
+      // this.box.position.x += 0.05;
       Engine.update(this.engine, 1000 / 60);
     }, 1000 / 60);
   }

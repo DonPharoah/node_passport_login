@@ -1,30 +1,29 @@
-// import MainScene from '../scenes/mainScene';
-// import Building from './building';
+import Building from './building';
+import { Engine, World, Bodies, Body, Vector } from 'matter-js';
+import { getSeed } from '../utils/seed';
 
-// class Unit {
-//   private _target: Building;
-//   private _rectangle: any;
-//   private static FILL_COLOR = 0xffffff;
+class Unit {
+  public readonly body: Body;
+  public readonly id: string;
+  private _target: Building;
+  public readonly ownerId: string;
 
-//   constructor(scene: MainScene, x: number, y: number, target?: Building) {
-//     super(scene, 'unit');
-//     this._rectangle = scene.add.rectangle(x, y, 10, 10, Unit.FILL_COLOR) as any;
-//     scene.physics.add.existing(this._rectangle);
-//     this._target = target;
-//     if (target) {
-//       const targetPosition = this._target.rectangle.getCenter();
-//       const currentPosition = this._rectangle.getCenter();
-//       const distance = targetPosition.subtract(currentPosition);
-//       this._rectangle.body.setVelocity(distance.x, distance.y);
-//     } else {
-//       this._rectangle.body.setVelocity(10, 20);
-//     }
-//   }
+  constructor(position: Vector, radius, ownerId: string, target?: Building) {
+    const { x, y } = position;
+    const seed = getSeed();
+    this.ownerId = ownerId;
+    this.body = Bodies.circle(x, y, radius);
+    this._target = target;
+    this.id = seed.generate();
+    if (target) {
+      const targetPosition = this._target.body.position;
+      const currentPosition = this.body.position;
+      const distance = Vector.sub(targetPosition, currentPosition);
+      Body.setVelocity(this.body, distance);
+    } else {
+      Body.setVelocity(this.body, { x: 10, y: 20 });
+    }
+  }
+}
 
-//   public getPosition() {
-//     const position = this._rectangle.getCenter();
-//     return { x: position.x, y: position.y };
-//   }
-// }
-
-// export default Unit;
+export default Unit;

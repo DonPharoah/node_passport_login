@@ -1,6 +1,9 @@
 import * as Phaser from 'phaser';
+import UIPlugin from '../rex-ui/templates/ui/ui-plugin.js';
 import { initDebugGui_sceneSelect } from './utils/debugGui';
-import MainScene from './scenes/mainScene';
+import ClientScene from './scenes/clientScene';
+import UIScene from './scenes/uiScene';
+import ButtonTest from './scenes/button-test';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
@@ -8,6 +11,11 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   width: window.innerWidth,
   height: window.innerHeight,
   type: Phaser.AUTO,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    parent: 'game'
+  },
   audio: {
     disableWebAudio: true
   },
@@ -17,7 +25,10 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [MainScene],
+  scene: [ClientScene, UIScene],
+  plugins: {
+    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI' }]
+  },
   parent: 'game',
   backgroundColor: '#000'
 };

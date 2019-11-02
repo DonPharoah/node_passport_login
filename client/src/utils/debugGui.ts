@@ -1,5 +1,6 @@
 import * as dat from 'dat.gui';
-import MainScene from '../scenes/mainScene';
+import ClientScene from '../scenes/clientScene';
+import { Events } from '../interfaces/eventConstants';
 
 let debugGuiFolder;
 let debugFunctionsFolder;
@@ -18,19 +19,20 @@ const initDebugGui_sceneSelect = (game) => {
       game.scene.start('debugScene');
     }
   };
-  debugGui.add(options, 'startMainScene');
+  let sceneSelectFolder = debugGui.addFolder('Scene Selection');
+  sceneSelectFolder.add(options, 'startMainScene');
   // debugGui.add(options, 'startDebugScene');
 };
 
-const debugGuiOptions = function(context: MainScene) {
+const debugGuiOptions = function(context: ClientScene) {
   this.genericInput = 'defaultText';
   this.sendMessageEvent = () => context.showMessage(this.genericInput);
   this.sendTestErrorEvent = () => context.showError(this.genericInput);
-  this.requestChangeUserName = () => context.socket.emit('changeName', this.genericInput);
+  this.requestChangeUserName = () => context.socket.emit(Events.CHANGE_NAME, this.genericInput);
   this.setUserName = () => context.data.set('userName', this.genericInput);
-  this.getAllUsers = () => context.socket.emit('getAllUserNames');
+  this.getAllUsers = () => context.socket.emit(Events.GET_ALL_USER_NAMES);
   this.connect = () => context.socket.connect();
-  this.disconnect = () => context.socket.emit('playerDisconnect');
+  this.disconnect = () => context.socket.emit(Events.PLAYER_DISCONNECTED);
   this.startPingServer = () => context.startPingServer();
   this.stopPingServer = () => context.stopPingServer();
 };

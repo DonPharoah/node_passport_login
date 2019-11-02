@@ -1,4 +1,4 @@
-import MainScene from '../scenes/mainScene';
+import ClientScene from '../scenes/clientScene';
 import * as short from 'short-uuid';
 const uuid = short();
 
