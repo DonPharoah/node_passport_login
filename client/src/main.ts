@@ -3,7 +3,6 @@ import UIPlugin from '../rex-ui/templates/ui/ui-plugin.js';
 import { initDebugGui_sceneSelect } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './scenes/uiScene';
-import ButtonTest from './scenes/button-test';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
