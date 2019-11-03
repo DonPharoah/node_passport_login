@@ -5,12 +5,13 @@ declare let GameObject: Phaser.GameObjects.GameObject;
 
 class Building extends Phaser.GameObjects.GameObject implements Selectable {
   private _rectangle: Phaser.GameObjects.Rectangle;
-  private ownerId: string;
+  public readonly id: string;
+  public readonly ownerId: string;
   // private ID: number;
   private static FILL_COLOR = 0xffffff;
   private static STROKE_COLOR = 0x888888;
 
-  public description: string = 'Building ';
+  public description: string = 'Building';
   public clientScene: ClientScene;
 
   constructor(scene: ClientScene, x: number, y: number, id: string, ownerId: string) {
@@ -20,7 +21,7 @@ class Building extends Phaser.GameObjects.GameObject implements Selectable {
     this._rectangle.setInteractive();
     this._rectangle.setDataEnabled();
     this.ownerId = ownerId;
-    this._rectangle.name = id;
+    this.id = id;
     this._rectangle.setData('selected', true);
     this._rectangle.setData('owner', this);
     this._rectangle.setStrokeStyle(3, 0x888888);
@@ -35,13 +36,12 @@ class Building extends Phaser.GameObjects.GameObject implements Selectable {
       //this._rectangle.strokeColor = Building.STROKE_COLOR;
     });
 
-    // this.ID = Phaser.Math.Between(1, 100);
-    scene.buildings.add(this._rectangle);
+    scene.buildings.add(this);
   }
 
   public selectedEvent() {
     this._rectangle.strokeColor = 0x0000ff;
-    this.clientScene.debugText.setText(`Selected: ${this.description + this.ownerId}`);
+    this.clientScene.showMessage(`Selected: ${this.description}, owner: ${this.ownerId}`);
     return this;
   }
   public deselectedEvent() {

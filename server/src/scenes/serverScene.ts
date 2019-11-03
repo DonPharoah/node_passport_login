@@ -42,11 +42,18 @@ class ServerScene {
 
   public addEntityToSceneAndNotify(group, newEntity, notifier: Events) {
     const { x, y } = newEntity.body.position;
+    const { id, ownerId } = newEntity;
     console.log(newEntity.id);
     console.log('x and y: ', x, y);
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
-    this.io.emit(notifier, { x, y, id: newEntity.id });
+    this.io.emit(notifier, { x, y, id, ownerId });
+    console.log('Testing id lookup for added entity: ');
+    try {
+      console.log(this.findBuildingById(newEntity.id));
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   public handleSockets() {
@@ -99,10 +106,16 @@ class ServerScene {
     });
   }
 
-  public getEntityWithId(id: string): Entity {
-    let entity;
-    //lookup id
-    return entity;
+  public findBuildingById(id: string): Building {
+    let building = this.buildings[id] ? this.buildings[id] : null;
+    if (!building) throw new Error('Building could not be found');
+    return building;
+  }
+
+  public findUnitById(id: string): Unit {
+    let unit = this.units[id] ? this.units[id] : null;
+    if (!unit) throw new Error('Unit could not be found');
+    return unit;
   }
 
   public startServerUpdateTick() {
