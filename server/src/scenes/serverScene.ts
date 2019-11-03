@@ -4,6 +4,7 @@ import { Engine, World, Bodies, Body } from 'matter-js';
 import Building from '../entities/building';
 import Unit from '../entities/unit';
 import { Events } from '../interfaces/eventConstants';
+import Entity from '../entities/entity';
 
 class ServerScene {
   public players: Players = {};
@@ -39,13 +40,13 @@ class ServerScene {
     // return { x, y };
   }
 
-  public addEntityToSceneAndNotify(group, newEntity) {
+  public addEntityToSceneAndNotify(group, newEntity, notifier: Events) {
     const { x, y } = newEntity.body.position;
     console.log(newEntity.id);
     console.log('x and y: ', x, y);
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
-    this.io.emit(Events.NEW_UNIT_ADDED, { x, y, id: newEntity.id });
+    this.io.emit(notifier, { x, y, id: newEntity.id });
   }
 
   public handleSockets() {
@@ -88,14 +89,20 @@ class ServerScene {
       socket.on(Events.PLAYER_CONSTRUCT_BUILDING, (data: { x: number; y: number }) => {
         const { x, y } = data;
         const newBuilding = new Building({ x, y }, 30, socket.id);
-        this.addEntityToSceneAndNotify(this.buildings, newBuilding);
+        this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
       });
-      socket.on(Events.PLAYER_ISSUE_COMMAND, (data: { x: number; y: number }) => {
-        const { x, y } = data;
-        const newUnit = new Unit({ x, y }, 30, socket.id);
-        this.addEntityToSceneAndNotify(this.units, newUnit);
+      socket.on(Events.PLAYER_ISSUE_COMMAND, (data: { x: number; y: number; target: Building }) => {
+        const { x, y, target } = data;
+        const newUnit = new Unit({ x, y }, 30, socket.id, target);
+        this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED);
       });
     });
+  }
+
+  public getEntityWithId(id: string): Entity {
+    let entity;
+    //lookup id
+    return entity;
   }
 
   public startServerUpdateTick() {

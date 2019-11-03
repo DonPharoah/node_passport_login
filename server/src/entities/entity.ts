@@ -1,3 +1,7 @@
 // import MainScene from '../scenes/mainScene';
 
-// class Entity extends Phaser.GameObjects.GameObject {}
+class Entity {
+  public id: string;
+}
+
+export default Entity;

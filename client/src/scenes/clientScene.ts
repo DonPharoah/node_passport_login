@@ -3,6 +3,7 @@ import Unit from '../entities/unit';
 import { initDebugGui_sceneCommands } from '../utils/debugGui';
 import { Events } from '../interfaces/eventConstants';
 import * as io from 'socket.io-client';
+import { GameObjects } from 'phaser';
 
 class ClientScene extends Phaser.Scene {
   private box: Phaser.GameObjects.Rectangle;
@@ -24,6 +25,7 @@ class ClientScene extends Phaser.Scene {
   public mouseOvers: Selectable[] = [];
   public currentSelected: Selectable[] = [];
   public mouseOversIndex: number = 0;
+  public keys;
   constructor() {
     super({ key: 'mainScene', visible: true, active: true });
   }
@@ -34,6 +36,8 @@ class ClientScene extends Phaser.Scene {
   public create() {
     this.input.setTopOnly(false);
     this.initCamera();
+    this.initWASD();
+    this.initWASDHandler();
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
     this.howie = this.sound.add('howie', { volume: 0.3 });
@@ -81,6 +85,10 @@ class ClientScene extends Phaser.Scene {
     });
     this.socket.on(Events.NEW_UNIT_ADDED, (newEntity) => {
       console.log(newEntity);
+      this.addNewUnitToScene(newEntity);
+    });
+    this.socket.on(Events.NEW_BUILDING_ADDED, (newEntity) => {
+      console.log(newEntity);
       this.addNewBuildingToScene(newEntity);
     });
 
@@ -101,10 +109,18 @@ class ClientScene extends Phaser.Scene {
       }
     });
 
-    this.input.on('pointerdown', (pointer) => {
-      let { x, y } = pointer;
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      let worldX = pointer.worldX;
+      let worldY = pointer.worldY;
       if (pointer.rightButtonDown()) {
-        console.log(`right mouse button clicked at ${x}, ${y}`);
+        console.log(`right mouse button clicked at ${worldX}, ${worldY}`);
+        if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
+          this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
+            x: worldX,
+            y: worldY,
+            target: this.currentSelected[0]
+          });
+        }
       } else {
         const length = this.mouseOvers.length;
         const i = this.mouseOversIndex;
@@ -117,7 +133,7 @@ class ClientScene extends Phaser.Scene {
           this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
           this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
         } else {
-          this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: x, y: y });
+          this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
           this.debugText.setText('Nothing');
         }
       }
@@ -138,9 +154,13 @@ class ClientScene extends Phaser.Scene {
     //this.debugText.setText(`Selected: ${this.mouseOvers.length}`);
   }
 
-  public update() {
-    const cursorKeys = this.input.keyboard.createCursorKeys();
+  public getEntityById(id: string): Phaser.GameObjects.GameObject {
+    let gameObject;
+    //lookup id
+    return gameObject;
   }
+
+  public update() {}
   showMessage(message = 'Default text') {
     console.log(message);
     this.debugText.setText(message);
@@ -205,6 +225,27 @@ class ClientScene extends Phaser.Scene {
     this.minimapCamera.scrollX = 700;
     this.minimapCamera.scrollY = 700;
     this.minimapCamera.setBackgroundColor('#222222');
+  }
+  initWASD() {
+    this.keys = this.input.keyboard.addKeys('W,S,A,D');
+  }
+  handleWASD() {
+    this.input.keyboard.on('keydown', (event: KeyboardEvent) => {
+      switch (event.code) {
+        case 'KeyW':
+          this.cameras.main.scrollY -= 1;
+          break;
+        case 'KeyA':
+          this.cameras.main.scrollX -= 1;
+          break;
+        case 'KeyS':
+          this.cameras.main.scrollY += 1;
+          break;
+        case 'KeyD':
+          this.cameras.main.scrollX += 1;
+          break;
+      }
+    });
   }
 }
 export default ClientScene;

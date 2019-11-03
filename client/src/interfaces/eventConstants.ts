@@ -1,5 +1,6 @@
 export const enum Events {
   NEW_UNIT_ADDED = 'newUnitAdded',
+  NEW_BUILDING_ADDED = 'newBuildingAdded',
   CONNECTION = 'connection',
   DISCONNECT = 'disconnect',
   PING_EVENT = 'pingEvent',

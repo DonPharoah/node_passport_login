@@ -1,14 +1,15 @@
 import Building from './building';
 import { Engine, World, Bodies, Body, Vector } from 'matter-js';
 import { getSeed } from '../utils/seed';
+import Entity from '../entities/entity';
 
-class Unit {
+class Unit extends Entity {
   public readonly body: Body;
-  public readonly id: string;
   private _target: Building;
   public readonly ownerId: string;
 
-  constructor(position: Vector, radius, ownerId: string, target?: Building) {
+  constructor(position: Vector, radius, ownerId: string, target: Building) {
+    super();
     const { x, y } = position;
     const seed = getSeed();
     this.ownerId = ownerId;
