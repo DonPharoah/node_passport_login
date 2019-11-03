@@ -90,6 +90,11 @@ class ServerScene {
         const newBuilding = new Building({ x, y }, 30, socket.id);
         this.addEntityToSceneAndNotify(this.buildings, newBuilding);
       });
+      socket.on(Events.PLAYER_ISSUE_COMMAND, (data: { x: number; y: number }) => {
+        const { x, y } = data;
+        const newUnit = new Unit({ x, y }, 30, socket.id);
+        this.addEntityToSceneAndNotify(this.units, newUnit);
+      });
     });
   }
 

@@ -11,7 +11,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   height: window.innerHeight,
   type: Phaser.AUTO,
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     parent: 'game'
   },
@@ -33,7 +33,12 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(gameConfig);
-
+window.onload = () => {
+  let canvas = document.querySelector('canvas');
+  canvas.oncontextmenu = (e) => {
+    e.preventDefault();
+  };
+};
 initDebugGui_sceneSelect(game);
 
 /*

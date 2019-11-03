@@ -1,38 +1,47 @@
+import ClientScene from '../../scenes/clientScene';
+import UIScene from '../../scenes/uiScene';
+import buildingList from './ui-lists/buildings/buildingList';
+
 type itemElement = { id: number; color: number };
 const COLOR_PRIMARY = 0x4e342e;
 const COLOR_LIGHT = 0x7b5e57;
 const COLOR_DARK = 0x260e04;
 const Random = Phaser.Math.Between;
 
-const getItems = (count): itemElement[] => {
-  var data: itemElement[] = [];
-  for (var i = 0; i < count; i++) {
-    data.push({
-      id: i,
-      color: Random(0, 0xffffff)
-    });
-  }
-  return data;
-};
+// const getItems = (count): itemElement[] => {
+//   var data: itemElement[] = [];
+//   for (var i = 0; i < count; i++) {
+//     data.push({
+//       id: i,
+//       color: Random(0, 0xffffff)
+//     });
+//   }
+//   return data;
+// };
 
-const initGridTable = (scene) => {
-  let gameWidth = Number(scene.game.config.width);
-  let gameHeight = Number(scene.game.config.height);
+const initGridTable = (scene: UIScene) => {
+  let gameWidth = scene.game.config.width;
+  let gameHeight = scene.game.config.height;
   var scrollMode = 1; // 0:vertical, 1:horizontal
   var gridTable = scene.rexUI.add
     .gridTable({
-      x: scene.game.config.width / 2,
-      y: gameHeight - 125,
-      width: scrollMode === 0 ? 300 : scene.game.config.width,
-      height: scrollMode === 0 ? 420 : 250,
+      // x: scene.game.config.width / 2,
+      // y: gameHeight - 300,
+      // width: scene.game.config.width,
+      width: (scene.game.config.width as number) / 2,
+      height: 230,
+      anchor: {
+        left: '0%',
+        bottom: '100%'
+      },
       scrollMode: scrollMode,
-      background: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 0, COLOR_PRIMARY),
+      background: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222),
       table: {
-        cellWidth: scrollMode === 0 ? undefined : 80,
-        cellHeight: scrollMode === 0 ? 60 : 80,
+        cellWidth: 70,
+        cellHeight: 70,
         columns: 2,
         mask: {
-          padding: 2
+          padding: 10
         },
         reuseCellContainer: true
       },
@@ -41,33 +50,26 @@ const initGridTable = (scene) => {
         thumb: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 13, COLOR_LIGHT)
       },
       header: scene.rexUI.add.label({
-        width: scrollMode === 0 ? undefined : 30,
-        height: scrollMode === 0 ? 30 : undefined,
+        width: 30,
+        height: undefined,
         orientation: scrollMode,
         background: scene.rexUI.add.roundRectangle(0, 0, 20, 20, 0, COLOR_DARK),
-        text: scene.add.text(0, 0, 'Header')
+        text: scene.add.text(0, 0, 'Unit Selection', { fontSize: 12 })
       }),
-      footer: scene.rexUI.add.label({
-        width: scrollMode === 0 ? undefined : 30,
-        height: scrollMode === 0 ? 30 : undefined,
-        orientation: scrollMode,
-        background: scene.rexUI.add.roundRectangle(0, 0, 20, 20, 0, COLOR_DARK),
-        text: scene.add.text(0, 0, 'Footer')
-      }),
+      footer: undefined,
       space: {
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: 20,
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 15,
 
-        table: 10,
-        header: 10,
-        footer: 10
+        table: 20,
+        header: 10
       },
       createCellContainerCallback: function(cell, cellContainer) {
         let width = cell.width,
           height = cell.height,
-          item = cell.item,
+          item: BuildingSchema = cell.item,
           index = cell.index;
         if (cellContainer === null) {
           cellContainer = scene.rexUI.add.label({
@@ -75,8 +77,8 @@ const initGridTable = (scene) => {
             height: height,
             orientation: scrollMode,
             background: scene.rexUI.add.roundRectangle(0, 0, 20, 20, 0).setStrokeStyle(2, COLOR_DARK),
-            icon: scene.rexUI.add.roundRectangle(0, 0, 20, 20, 10, 0x0),
-            text: scene.add.text(0, 0, ''),
+            icon: scene.rexUI.add.roundRectangle(0, 0, 0, item.size, item.size, 0x0),
+            text: scene.add.text(0, 0, item.name, { fontSize: 12 }),
 
             space: {
               icon: 10,
@@ -91,11 +93,14 @@ const initGridTable = (scene) => {
 
         // Set properties from item value
         cellContainer.setMinSize(width, height); // Size might changed in this demo
-        cellContainer.getElement('text').setText(item.id); // Set text of text object
-        cellContainer.getElement('icon').setFillStyle(item.color); // Set fill color of round rectangle object
+        // cellContainer.getElement('text').setText('Unit ' + item.name); // Set text of text object
+        cellContainer
+          .getElement('icon')
+          .setFillStyle(item.color)
+          .setStrokeStyle(2, COLOR_DARK); // Set fill color of round rectangle object
         return cellContainer;
       },
-      items: getItems(50),
+      items: buildingList,
       draggable: false
     })
     .layout();
@@ -126,7 +131,7 @@ const initGridTable = (scene) => {
       // this.print.text += 'press-start (' + cellIndex + ': ' + cellContainer.text + ')\n';
     })
     .on('cell.pressend', (cellContainer, cellIndex) => {
-      console.log('press end on cell: ' + cellIndex);
+      console.log('cellContainer: ' + cellContainer);
     });
 };
 

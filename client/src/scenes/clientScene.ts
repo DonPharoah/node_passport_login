@@ -17,16 +17,15 @@ class ClientScene extends Phaser.Scene {
   public pingSocket: SocketIOClient.Socket;
   public pingStartTime;
   public pingInterval;
+  public minimapCamera: Phaser.Cameras.Scene2D.Camera;
   public howie: Phaser.Sound.BaseSound;
   public wilhelm: Phaser.Sound.BaseSound;
   public buildings: Phaser.GameObjects.Group;
-
   public mouseOvers: Selectable[] = [];
   public currentSelected: Selectable[] = [];
   public mouseOversIndex: number = 0;
-
   constructor() {
-    super({ key: 'mainScene' });
+    super({ key: 'mainScene', visible: true, active: true });
   }
   public preload() {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
@@ -34,6 +33,7 @@ class ClientScene extends Phaser.Scene {
   }
   public create() {
     this.input.setTopOnly(false);
+    this.initCamera();
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
     this.howie = this.sound.add('howie', { volume: 0.3 });
@@ -45,7 +45,7 @@ class ClientScene extends Phaser.Scene {
       name: 'buildings',
       key: 'building'
     });
-    this.data.set('userName', 'Default User Name');
+    this.registry.set('userName', 'Default User Name');
     this.titleText = this.add.text(20, 20, 'In Debug Scene', { fontSize: '20px' });
     this.debugText = this.add.text(20, 50, 'Testing', { fontSize: '20px' });
     this.userNameText = this.add.text(20, 80, `Player name: ${this.data.get('userName')}`, {
@@ -81,7 +81,12 @@ class ClientScene extends Phaser.Scene {
     });
     this.socket.on(Events.NEW_UNIT_ADDED, (newEntity) => {
       console.log(newEntity);
-      this.addNewEntityToScene(newEntity);
+      this.addNewBuildingToScene(newEntity);
+    });
+
+    this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
+      console.log(newEntity);
+      this.addNewBuildingToScene(newEntity);
     });
 
     this.pingSocket.on(Events.PONG_EVENT, () => {
@@ -89,27 +94,32 @@ class ClientScene extends Phaser.Scene {
       this.showMessage(`latency: ${latency}ms`);
     });
 
-    this.events.on(
-      'changedata-userName',
-      (parent, value) => {
+    // MAIN VARIABLE OBSERVER
+    this.registry.events.on('changedata', (parent, key, value) => {
+      if (key === 'userName') {
         this.userNameText.setText(`Player name: ${value}`);
-        // this.socket.emit('changeName', value);
-      },
-      this
-    );
+      }
+    });
+
     this.input.on('pointerdown', (pointer) => {
       let { x, y } = pointer;
-      const length = this.mouseOvers.length;
-      const i = this.mouseOversIndex;
-      if (length > 0) {
-        //mouse is over objects
-        let previouslySelected = this.currentSelected[0];
-        this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
-        previouslySelected.deselectedEvent();
-        this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
+      if (pointer.rightButtonDown()) {
+        console.log(`right mouse button clicked at ${x}, ${y}`);
       } else {
-        this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: x, y: y });
-        this.debugText.setText('Nothing');
+        const length = this.mouseOvers.length;
+        const i = this.mouseOversIndex;
+        if (length > 0) {
+          //mouse is over objects
+          if (this.currentSelected[0]) {
+            let previouslySelected = this.currentSelected[0];
+            previouslySelected.deselectedEvent();
+          }
+          this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
+          this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
+        } else {
+          this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: x, y: y });
+          this.debugText.setText('Nothing');
+        }
       }
     });
   }
@@ -155,12 +165,16 @@ class ClientScene extends Phaser.Scene {
       ease: 'Quad'
     });
   }
-  addNewEntityToScene(options: { x: number; y: number; id: string; ownerId: string }) {
-    //this.add.circle(options.x, options.y, 30, 0xffffff);
+  addNewBuildingToScene(options: { x: number; y: number; id: string; ownerId: string }) {
     const { x, y, id, ownerId } = options;
     // uncomment
     const newBuilding = new Building(this, x, y, id, ownerId);
     this.add.existing(newBuilding);
+  }
+  addNewUnitToScene(options: { x: number; y: number; id: string; ownerId: string; target: Building }) {
+    const { x, y, id, ownerId, target } = options;
+    const newUnit = new Unit(this, x, y, target);
+    this.add.existing(newUnit);
   }
   updateSquarePosition(position) {
     const { x, y } = position;
@@ -175,6 +189,22 @@ class ClientScene extends Phaser.Scene {
   }
   stopPingServer() {
     clearInterval(this.pingInterval);
+  }
+  initCamera() {
+    this.minimapCamera = this.cameras.add(
+      <number>this.game.config.width - 200,
+      <number>this.game.config.height - 200,
+      200,
+      200,
+      false,
+      'mainScene'
+    );
+    this.minimapCamera.setScene(this);
+    this.minimapCamera.setZoom(0.1);
+    this.minimapCamera.centerToSize();
+    this.minimapCamera.scrollX = 700;
+    this.minimapCamera.scrollY = 700;
+    this.minimapCamera.setBackgroundColor('#222222');
   }
 }
 export default ClientScene;

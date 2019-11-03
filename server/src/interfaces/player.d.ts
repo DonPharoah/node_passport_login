@@ -1,10 +1,10 @@
-interface Player {
+interface PlayerSchema {
   id: string;
   name: string;
 }
 
 interface Players {
-  [playerId: string]: Player;
+  [playerId: string]: PlayerSchema;
 }
 
 interface Units {
