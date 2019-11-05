@@ -4,6 +4,7 @@ import { initDebugGui_sceneCommands } from '../utils/debugGui';
 import { Events } from '../interfaces/eventConstants';
 import * as io from 'socket.io-client';
 import { GameObjects } from 'phaser';
+import Entity from '../entities/entity';
 
 class ClientScene extends Phaser.Scene {
   private isConnected: boolean = false;
@@ -23,8 +24,8 @@ class ClientScene extends Phaser.Scene {
   public wilhelm: Phaser.Sound.BaseSound;
   public buildings: Phaser.GameObjects.Group;
   public units: Phaser.GameObjects.Group;
-  public mouseOvers: Selectable[] = [];
-  public currentSelected: Selectable[] = [];
+  public mouseOvers: Entity[] = [];
+  public currentSelected: Entity[] = [];
   public mouseOversIndex: number = 0;
   public keyW: Phaser.Input.Keyboard.Key;
   public keyA: Phaser.Input.Keyboard.Key;
@@ -80,12 +81,13 @@ class ClientScene extends Phaser.Scene {
       let worldX = pointer.worldX;
       let worldY = pointer.worldY;
       if (pointer.rightButtonDown()) {
-        console.log(`right mouse button clicked at ${worldX}, ${worldY}`);
+        console.log(`right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`);
         if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
           this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
             x: worldX,
             y: worldY,
-            target: this.currentSelected[0]
+            selectedId: this.currentSelected[0].id,
+            targetId: this.mouseOvers[0].id
           });
         }
       } else {
@@ -135,19 +137,19 @@ class ClientScene extends Phaser.Scene {
       // console.log(position);
       // this.updateSquarePosition(position);
     });
-    this.socket.on(Events.NEW_UNIT_ADDED, (newEntity) => {
-      console.log(newEntity);
-      this.addNewUnitToScene(newEntity);
+    this.socket.on(Events.NEW_UNIT_ADDED, (newUnit) => {
+      console.log(newUnit);
+      this.addNewUnitToScene(newUnit);
     });
-    this.socket.on(Events.NEW_BUILDING_ADDED, (newEntity) => {
-      console.log(newEntity);
-      this.addNewBuildingToScene(newEntity);
+    this.socket.on(Events.NEW_BUILDING_ADDED, (newBuilding) => {
+      console.log(newBuilding);
+      this.addNewBuildingToScene(newBuilding);
     });
 
-    this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
-      console.log(newEntity);
-      this.addNewBuildingToScene(newEntity);
-    });
+    // this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
+    //   console.log(newEntity);
+    //   //this.addNewBuildingToScene(newEntity);
+    // });
 
     this.pingSocket.on(Events.PONG_EVENT, () => {
       let latency = Date.now() - this.pingStartTime;
@@ -155,13 +157,13 @@ class ClientScene extends Phaser.Scene {
     });
   }
 
-  public mouseOverEvent(objectMousedOver: Selectable) {
+  public mouseOverEvent(objectMousedOver: Entity) {
     this.mouseOvers.push(objectMousedOver);
     this.mouseOversIndex = 0;
-    //this.debugText.setText(`Selected: ${this.mouseOvers.length}`);
+    this.debugText.setText(`Selected: ${this.mouseOvers[0].id}`);
   }
 
-  public mouseOffEvent(objectMousedOff: Selectable) {
+  public mouseOffEvent(objectMousedOff: Entity) {
     const i = this.mouseOvers.indexOf(objectMousedOff);
     if (i > -1) {
       this.mouseOvers.splice(i, 1);
@@ -172,12 +174,13 @@ class ClientScene extends Phaser.Scene {
   }
 
   public findBuildingById(id: string): Building {
-    let buildingArray = this.buildings.getChildren() as Building[];
-    let foundBuilding = buildingArray.find((currentBuilding) => {
+    let buildingArray = this.buildings.getChildren();
+    let foundBuilding = buildingArray.find((currentBuilding: Building) => {
       return currentBuilding.id === id;
     });
-    if (!foundBuilding) throw new Error('Building could not be found');
-    return foundBuilding;
+    if (!foundBuilding) throw new Error(`Building ${id} could not be found`);
+    let returnBuilding = foundBuilding as Building;
+    return returnBuilding;
   }
 
   public findUnitById(id: string): Unit {
@@ -216,18 +219,18 @@ class ClientScene extends Phaser.Scene {
     const { x, y, id, ownerId } = options;
     const newBuilding = new Building(this, x, y, id, ownerId);
     console.log(this.buildings.getChildren());
-    try {
-      console.log(this.findBuildingById(id));
-    } catch (e) {
-      console.log(e);
-    }
+    // try {
+    //   console.log(this.findBuildingById(id));
+    // } catch (e) {
+    //   console.log(e);
+    // }
 
-    // this.add.existing(newBuilding);
+    this.add.existing(newBuilding);
   }
 
-  public addNewUnitToScene(options: { x: number; y: number; id: string; ownerId: string; target: Building }) {
-    const { x, y, id, ownerId, target } = options;
-    const newUnit = new Unit(this, x, y, target, ownerId, id);
+  public addNewUnitToScene(options: { x: number; y: number; id: string; ownerId: string; targetId: string }) {
+    const { x, y, id, ownerId, targetId } = options;
+    const newUnit = new Unit(this, x, y, id, ownerId, this.findBuildingById(targetId));
     // this.add.existing(newUnit);
   }
 

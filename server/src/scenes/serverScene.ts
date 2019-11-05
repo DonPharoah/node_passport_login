@@ -40,14 +40,17 @@ class ServerScene {
     // return { x, y };
   }
 
-  public addEntityToSceneAndNotify(group, newEntity, notifier: Events) {
+  public addEntityToSceneAndNotify(group, newEntity, notifier: Events, targetId?: string) {
     const { x, y } = newEntity.body.position;
-    const { id, ownerId } = newEntity;
+    const { ownerId } = newEntity;
+    const id = newEntity.id;
     console.log(newEntity.id);
     console.log('x and y: ', x, y);
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
-    this.io.emit(notifier, { x, y, id, ownerId });
+
+    this.io.emit(notifier, { x, y, id, ownerId, targetId });
+
     console.log('Testing id lookup for added entity: ');
     try {
       console.log(this.findBuildingById(newEntity.id));
@@ -98,11 +101,14 @@ class ServerScene {
         const newBuilding = new Building({ x, y }, 30, socket.id);
         this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
       });
-      socket.on(Events.PLAYER_ISSUE_COMMAND, (data: { x: number; y: number; target: Building }) => {
-        const { x, y, target } = data;
-        const newUnit = new Unit({ x, y }, 30, socket.id, target);
-        this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED);
-      });
+      socket.on(
+        Events.PLAYER_ISSUE_COMMAND,
+        (data: { x: number; y: number; selectedId: string; targetId: string }) => {
+          const { x, y, targetId } = data;
+          const newUnit = new Unit({ x, y }, 30, socket.id, this.findBuildingById(targetId));
+          this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, targetId);
+        }
+      );
     });
   }
 
