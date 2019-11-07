@@ -16,9 +16,12 @@ class ClientScene extends Phaser.Scene {
   public pingStartTime;
   public pingInterval;
 
+  public mainCamera: Phaser.Cameras.Scene2D.Camera;
+  public minimapCamera: Phaser.Cameras.Scene2D.Camera;
   public guiController: GuiController;
   public howie: Phaser.Sound.BaseSound;
   public wilhelm: Phaser.Sound.BaseSound;
+  public starfield: Phaser.GameObjects.TileSprite;
   public buildings: Phaser.GameObjects.Group;
   public units: Phaser.GameObjects.Group;
   public mouseOvers: Entity[] = [];
@@ -29,6 +32,7 @@ class ClientScene extends Phaser.Scene {
   public keyS: Phaser.Input.Keyboard.Key;
   public keyD: Phaser.Input.Keyboard.Key;
   public keyESC: Phaser.Input.Keyboard.Key;
+  public keySHIFT: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'mainScene', visible: true, active: true });
@@ -37,12 +41,16 @@ class ClientScene extends Phaser.Scene {
   public preload() {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
+    // this.load.image('starfield', '../../assets/images/starfield2.png');
   }
 
   public create() {
     this.guiController = getGuiController();
     this.input.setTopOnly(false);
     initMinimapCamera(this);
+    this.mainCamera = this.cameras.main;
+    this.minimapCamera = getMinimapCamera();
+    // this.starfield = this.add.tileSprite(500, 500, 1000, 1000, 'starfield');
     this.initKeyboardKeys();
     this.handleSockets();
     this.howie = this.sound.add('howie', { volume: 0.2 });
@@ -55,7 +63,6 @@ class ClientScene extends Phaser.Scene {
       classType: Phaser.GameObjects.Sprite,
       name: 'units'
     });
-
     try {
       initDebugGui_sceneCommands(this);
     } catch (e) {
@@ -69,37 +76,20 @@ class ClientScene extends Phaser.Scene {
     //   }
     // });
 
-    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      let worldX = pointer.worldX;
-      let worldY = pointer.worldY;
-      if (pointer.rightButtonDown()) {
-        if (this.mouseOvers.length > 0) {
-          console.log(
-            `right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`
-          );
-        }
-        if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
-          this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
-            x: worldX,
-            y: worldY,
-            selectedId: this.currentSelected[0].id,
-            targetId: this.mouseOvers[0].id
-          });
-        }
+    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+      if (deltaY > 0) {
+        this.mainCamera.setZoom(this.mainCamera.zoom / 1.2);
+        this.minimapCamera.setZoom(this.minimapCamera.zoom / 1.2);
       } else {
-        const length = this.mouseOvers.length;
-        const i = this.mouseOversIndex;
-        if (length > 0) {
-          //mouse is over objects
-          if (this.currentSelected[0]) {
-            let previouslySelected = this.currentSelected[0];
-            previouslySelected.deselectedEvent();
-          }
-          this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
-          this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
-        } else {
-          this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
-        }
+        this.mainCamera.setZoom(this.mainCamera.zoom * 1.2);
+        this.minimapCamera.setZoom(this.minimapCamera.zoom * 1.2);
+      }
+    });
+
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      // prevent being able to click if over Minimap
+      if (this.cameras.getCamerasBelowPointer(pointer).includes(this.minimapCamera) == false) {
+        this.handleRightClick(pointer);
       }
     });
   }
@@ -107,7 +97,37 @@ class ClientScene extends Phaser.Scene {
   public update() {
     this.handleKeyboardKeys();
   }
-
+  public handleRightClick(pointer: Phaser.Input.Pointer) {
+    let worldX = pointer.worldX;
+    let worldY = pointer.worldY;
+    if (pointer.rightButtonDown()) {
+      if (this.mouseOvers.length > 0) {
+        console.log(`right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`);
+      }
+      if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
+        this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
+          x: worldX,
+          y: worldY,
+          selectedId: this.currentSelected[0].id,
+          targetId: this.mouseOvers[0].id
+        });
+      }
+    } else {
+      const length = this.mouseOvers.length;
+      const i = this.mouseOversIndex;
+      if (length > 0) {
+        //mouse is over objects
+        if (this.currentSelected[0]) {
+          let previouslySelected = this.currentSelected[0];
+          previouslySelected.deselectedEvent();
+        }
+        this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
+        this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
+      } else {
+        this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
+      }
+    }
+  }
   public handleSockets() {
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
@@ -224,25 +244,27 @@ class ClientScene extends Phaser.Scene {
     this.keyS = this.input.keyboard.addKey('S');
     this.keyD = this.input.keyboard.addKey('D');
     this.keyESC = this.input.keyboard.addKey('ESC');
+    this.keySHIFT = this.input.keyboard.addKey('SHIFT');
   }
 
   public handleKeyboardKeys() {
-    let minimapCamera = getMinimapCamera();
+    let shiftDown = this.keySHIFT.isDown;
+    let panFactor = shiftDown ? 50 : 20;
     if (this.keyW.isDown) {
-      this.cameras.main.scrollY -= 20;
-      minimapCamera.scrollY -= 20;
+      this.cameras.main.scrollY -= panFactor;
+      this.minimapCamera.scrollY -= panFactor;
     }
     if (this.keyA.isDown) {
-      this.cameras.main.scrollX -= 20;
-      minimapCamera.scrollX -= 20;
+      this.cameras.main.scrollX -= panFactor;
+      this.minimapCamera.scrollX -= panFactor;
     }
     if (this.keyS.isDown) {
-      this.cameras.main.scrollY += 20;
-      minimapCamera.scrollY += 20;
+      this.cameras.main.scrollY += panFactor;
+      this.minimapCamera.scrollY += panFactor;
     }
     if (this.keyD.isDown) {
-      this.cameras.main.scrollX += 20;
-      minimapCamera.scrollX += 20;
+      this.cameras.main.scrollX += panFactor;
+      this.minimapCamera.scrollX += panFactor;
     }
     if (this.keyESC.isDown) {
       this.currentSelected.forEach((current) => current.deselectedEvent());

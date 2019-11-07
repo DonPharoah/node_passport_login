@@ -1,6 +1,9 @@
+import ClientScene from '../../scenes/clientScene';
+
 let minimapCamera: Phaser.Cameras.Scene2D.Camera;
 
-const initMinimapCamera = (scene): void => {
+const initMinimapCamera = (scene: ClientScene): void => {
+  let mainCamera = scene.cameras.main;
   minimapCamera = scene.cameras.add(
     (scene.game.config.width as number) - 200,
     (scene.game.config.height as number) - 200,
@@ -11,11 +14,10 @@ const initMinimapCamera = (scene): void => {
   );
   minimapCamera
     .setScene(scene)
-    .setZoom(0.1)
-    .centerToSize()
-    .setBackgroundColor('#222222');
-  minimapCamera.scrollX = 700;
-  minimapCamera.scrollY = 700;
+    .setZoom(0.05)
+    .setBackgroundColor('#222222')
+    .centerOn(mainCamera.x, mainCamera.y)
+    .setScroll(400, 400);
 };
 
 const getMinimapCamera = (): Phaser.Cameras.Scene2D.Camera => minimapCamera;
