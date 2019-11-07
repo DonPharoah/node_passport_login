@@ -3,7 +3,7 @@
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "typeRoots": ["node_modules/@types", "src/interfaces"]
+    "typeRoots": ["node_modules/@types", "src/schemas"]
   },
   "include": ["src/**/*"]
 }

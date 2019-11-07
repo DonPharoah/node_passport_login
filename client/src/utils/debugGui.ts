@@ -1,6 +1,7 @@
 import * as dat from 'dat.gui';
 import ClientScene from '../scenes/clientScene';
-import { Events } from '../interfaces/eventConstants';
+import { Events } from '../models/schemas/eventConstants';
+import { getGuiController } from '../controllers/guiController';
 
 let debugGuiFolder;
 let debugFunctionsFolder;
@@ -25,11 +26,12 @@ const initDebugGui_sceneSelect = (game) => {
 };
 
 const debugGuiOptions = function(context: ClientScene) {
+  let guiController = getGuiController();
   this.genericInput = 'defaultText';
-  this.sendMessageEvent = () => context.showMessage(this.genericInput);
-  this.sendTestErrorEvent = () => context.showError(this.genericInput);
+  this.sendMessageEvent = () => guiController.showOverlayMessage(this.genericInput);
+  this.sendTestErrorEvent = () => guiController.showOverlayError(this.genericInput);
   this.requestChangeUserName = () => context.socket.emit(Events.CHANGE_NAME, this.genericInput);
-  this.setUserName = () => context.data.set('userName', this.genericInput);
+  this.setUserName = () => context.registry.set('userName', this.genericInput);
   this.getAllUsers = () => context.socket.emit(Events.GET_ALL_USER_NAMES);
   this.connect = () => context.socket.connect();
   this.disconnect = () => context.socket.emit(Events.PLAYER_DISCONNECTED);

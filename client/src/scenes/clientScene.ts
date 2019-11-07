@@ -1,25 +1,22 @@
-import Building from '../entities/building';
-import Unit from '../entities/unit';
+import Building from '../models/entities/building';
+import Unit from '../models/entities/unit';
+import GuiController, { getGuiController } from '../controllers/guiController';
+import { getMinimapCamera, initMinimapCamera } from '../controllers/minimapController';
 import { initDebugGui_sceneCommands } from '../utils/debugGui';
-import { Events } from '../interfaces/eventConstants';
+import { Events } from '../models/schemas/eventConstants';
 import * as io from 'socket.io-client';
-import { GameObjects } from 'phaser';
-import Entity from '../entities/entity';
+import Entity from '../models/entities/entity';
 
 class ClientScene extends Phaser.Scene {
   private isConnected: boolean = false;
   private testBuilding: Building;
-  public titleText: Phaser.GameObjects.Text;
-  public debugText: Phaser.GameObjects.Text;
-  public errorText: Phaser.GameObjects.Text;
-  public userNameText: Phaser.GameObjects.Text;
 
   public socket: SocketIOClient.Socket;
   public pingSocket: SocketIOClient.Socket;
   public pingStartTime;
   public pingInterval;
 
-  public minimapCamera: Phaser.Cameras.Scene2D.Camera;
+  public guiController: GuiController;
   public howie: Phaser.Sound.BaseSound;
   public wilhelm: Phaser.Sound.BaseSound;
   public buildings: Phaser.GameObjects.Group;
@@ -31,6 +28,7 @@ class ClientScene extends Phaser.Scene {
   public keyA: Phaser.Input.Keyboard.Key;
   public keyS: Phaser.Input.Keyboard.Key;
   public keyD: Phaser.Input.Keyboard.Key;
+  public keyESC: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'mainScene', visible: true, active: true });
@@ -42,9 +40,10 @@ class ClientScene extends Phaser.Scene {
   }
 
   public create() {
+    this.guiController = getGuiController();
     this.input.setTopOnly(false);
-    this.initCameras();
-    this.initWASD();
+    initMinimapCamera(this);
+    this.initKeyboardKeys();
     this.handleSockets();
     this.howie = this.sound.add('howie', { volume: 0.2 });
     this.wilhelm = this.sound.add('wilhelm', { volume: 0.2 });
@@ -56,13 +55,6 @@ class ClientScene extends Phaser.Scene {
       classType: Phaser.GameObjects.Sprite,
       name: 'units'
     });
-    this.registry.set('userName', 'Default User Name');
-    this.titleText = this.add.text(20, 20, 'In Debug Scene', { fontSize: '20px' });
-    this.debugText = this.add.text(20, 50, 'Testing', { fontSize: '20px' });
-    this.userNameText = this.add.text(20, 80, `Player name: ${this.data.get('userName')}`, {
-      fontSize: '20px'
-    });
-    this.errorText = this.add.text(20, 140, '', { fontSize: '20px', color: 'red' });
 
     try {
       initDebugGui_sceneCommands(this);
@@ -71,17 +63,21 @@ class ClientScene extends Phaser.Scene {
     }
 
     // MAIN VARIABLE OBSERVER
-    this.registry.events.on('changedata', (parent, key, value) => {
-      if (key === 'userName') {
-        this.userNameText.setText(`Player name: ${value}`);
-      }
-    });
+    // this.registry.events.on('changedata', (parent, key, value) => {
+    //   if (key === 'YOUR_VARIABLE') {
+    // do something with your variable, as long as you already set it in the registry
+    //   }
+    // });
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       let worldX = pointer.worldX;
       let worldY = pointer.worldY;
       if (pointer.rightButtonDown()) {
-        console.log(`right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`);
+        if (this.mouseOvers.length > 0) {
+          console.log(
+            `right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`
+          );
+        }
         if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
           this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
             x: worldX,
@@ -103,14 +99,13 @@ class ClientScene extends Phaser.Scene {
           this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
         } else {
           this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
-          this.showMessage('Nothing');
         }
       }
     });
   }
 
   public update() {
-    this.handleWASD();
+    this.handleKeyboardKeys();
   }
 
   public handleSockets() {
@@ -118,20 +113,20 @@ class ClientScene extends Phaser.Scene {
     this.socket = io.connect('http://localhost:4000');
 
     this.socket.on(Events.CONNECTION, (player: string) => {
-      this.showMessage(`Player: ${player} connected.`);
+      this.guiController.showOverlayMessage(`Player: ${player} connected.`);
     });
     this.socket.on(Events.DISCONNECT, (player: string) => {
-      this.showMessage(`Player: ${player} disconnected.`);
+      this.guiController.showOverlayMessage(`Player: ${player} disconnected.`);
     });
     this.socket.on(Events.ERROR_STATUS, (errorMessage: string) => {
-      this.showError(errorMessage);
+      this.guiController.showOverlayError(errorMessage);
     });
     this.socket.on(Events.GET_ALL_USER_NAMES, (userNames: string[]) => {
       console.log(userNames);
     });
     this.socket.on(Events.CHANGE_NAME_OK, (newName: string) => {
       this.data.set('userName', newName);
-      this.showMessage(`Server allowed name change to: ${newName}`);
+      this.guiController.showOverlayMessage(`Server allowed name change to: ${newName}`);
     });
     this.socket.on(Events.SERVER_STATUS_UPDATE, (position) => {
       // console.log(position);
@@ -143,6 +138,7 @@ class ClientScene extends Phaser.Scene {
     });
     this.socket.on(Events.NEW_BUILDING_ADDED, (newBuilding) => {
       console.log(newBuilding);
+      this.guiController.showOverlayMessage('New building added!');
       this.addNewBuildingToScene(newBuilding);
     });
 
@@ -153,23 +149,33 @@ class ClientScene extends Phaser.Scene {
 
     this.pingSocket.on(Events.PONG_EVENT, () => {
       let latency = Date.now() - this.pingStartTime;
-      this.showMessage(`latency: ${latency}ms`);
+      this.guiController.showOverlayMessage(`latency: ${latency}ms`);
     });
   }
 
   public mouseOverEvent(objectMousedOver: Entity) {
+    this.guiController.clearText();
     this.mouseOvers.push(objectMousedOver);
     this.mouseOversIndex = 0;
-    this.debugText.setText(`Selected: ${this.mouseOvers[0].id}`);
+    // this.guiController.showMessage(`Selected: ${this.mouseOvers[0].id}`);
+    this.mouseOvers.forEach((current) => {
+      this.guiController.appendToTextArea(current.id);
+    });
   }
 
   public mouseOffEvent(objectMousedOff: Entity) {
+    this.guiController.clearText();
     const i = this.mouseOvers.indexOf(objectMousedOff);
     if (i > -1) {
       this.mouseOvers.splice(i, 1);
     }
 
     this.mouseOversIndex = 0;
+    if (this.mouseOvers.length > 0) {
+      this.mouseOvers.forEach((current) => {
+        this.guiController.appendToTextArea(current.id);
+      });
+    }
     //this.debugText.setText(`Selected: ${this.mouseOvers.length}`);
   }
 
@@ -179,8 +185,7 @@ class ClientScene extends Phaser.Scene {
       return currentBuilding.id === id;
     });
     if (!foundBuilding) throw new Error(`Building ${id} could not be found`);
-    let returnBuilding = foundBuilding as Building;
-    return returnBuilding;
+    return foundBuilding as Building;
   }
 
   public findUnitById(id: string): Unit {
@@ -189,42 +194,10 @@ class ClientScene extends Phaser.Scene {
     return gameObject;
   }
 
-  public showMessage(message = 'Default text') {
-    console.log(message);
-    this.tweens.killTweensOf(this.debugText);
-    this.debugText.setText(message);
-    this.debugText.alpha = 1;
-    this.tweens.add({
-      targets: this.debugText,
-      alpha: 0,
-      duration: 5000,
-      ease: 'Quad'
-    });
-  }
-
-  public showError(error = '') {
-    console.log(error);
-    this.tweens.killTweensOf(this.errorText);
-    this.errorText.setText(error);
-    this.errorText.alpha = 1;
-    this.tweens.add({
-      targets: this.errorText,
-      alpha: 0,
-      duration: 5000,
-      ease: 'Quad'
-    });
-  }
-
   public addNewBuildingToScene(options: { x: number; y: number; id: string; ownerId: string }) {
     const { x, y, id, ownerId } = options;
     const newBuilding = new Building(this, x, y, id, ownerId);
     console.log(this.buildings.getChildren());
-    // try {
-    //   console.log(this.findBuildingById(id));
-    // } catch (e) {
-    //   console.log(e);
-    // }
-
     this.add.existing(newBuilding);
   }
 
@@ -245,48 +218,34 @@ class ClientScene extends Phaser.Scene {
     clearInterval(this.pingInterval);
   }
 
-  public initCameras() {
-    this.cameras.main.setLerp(0.5, 0.5);
-    this.minimapCamera = this.cameras.add(
-      (this.game.config.width as number) - 200,
-      (this.game.config.height as number) - 200,
-      200,
-      200,
-      false,
-      'mainScene'
-    );
-    this.minimapCamera
-      .setScene(this)
-      .setZoom(0.1)
-      .centerToSize()
-      .setBackgroundColor('#222222');
-    this.minimapCamera.scrollX = 700;
-    this.minimapCamera.scrollY = 700;
-  }
-
-  public initWASD() {
+  public initKeyboardKeys() {
     this.keyW = this.input.keyboard.addKey('W');
     this.keyA = this.input.keyboard.addKey('A');
     this.keyS = this.input.keyboard.addKey('S');
     this.keyD = this.input.keyboard.addKey('D');
+    this.keyESC = this.input.keyboard.addKey('ESC');
   }
 
-  public handleWASD() {
+  public handleKeyboardKeys() {
+    let minimapCamera = getMinimapCamera();
     if (this.keyW.isDown) {
       this.cameras.main.scrollY -= 20;
-      this.minimapCamera.scrollY -= 20;
+      minimapCamera.scrollY -= 20;
     }
     if (this.keyA.isDown) {
       this.cameras.main.scrollX -= 20;
-      this.minimapCamera.scrollX -= 20;
+      minimapCamera.scrollX -= 20;
     }
     if (this.keyS.isDown) {
       this.cameras.main.scrollY += 20;
-      this.minimapCamera.scrollY += 20;
+      minimapCamera.scrollY += 20;
     }
     if (this.keyD.isDown) {
       this.cameras.main.scrollX += 20;
-      this.minimapCamera.scrollX += 20;
+      minimapCamera.scrollX += 20;
+    }
+    if (this.keyESC.isDown) {
+      this.currentSelected.forEach((current) => current.deselectedEvent());
     }
   }
 }

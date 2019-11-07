@@ -1,10 +1,10 @@
 import { getIo } from '../utils/server';
 import { getSeed } from '../utils/seed';
 import { Engine, World, Bodies, Body } from 'matter-js';
-import Building from '../entities/building';
-import Unit from '../entities/unit';
-import { Events } from '../interfaces/eventConstants';
-import Entity from '../entities/entity';
+import Building from '../models/entities/building';
+import Unit from '../models/entities/unit';
+import { Events } from '../models/schemas/eventConstants';
+import Entity from '../models/entities/entity';
 
 class ServerScene {
   public players: Players = {};
@@ -41,22 +41,14 @@ class ServerScene {
   }
 
   public addEntityToSceneAndNotify(group, newEntity, notifier: Events, targetId?: string) {
+    console.log('Adding entity to server scene...');
     const { x, y } = newEntity.body.position;
     const { ownerId } = newEntity;
     const id = newEntity.id;
-    console.log(newEntity.id);
-    console.log('x and y: ', x, y);
+    console.log(`Entity '${newEntity.id}' added at: ${x}, ${y}`);
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
-
     this.io.emit(notifier, { x, y, id, ownerId, targetId });
-
-    console.log('Testing id lookup for added entity: ');
-    try {
-      console.log(this.findBuildingById(newEntity.id));
-    } catch (e) {
-      console.error(e);
-    }
   }
 
   public handleSockets() {

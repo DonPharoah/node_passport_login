@@ -1,9 +1,7 @@
-import ClientScene from '../scenes/clientScene';
+import ClientScene from '../../scenes/clientScene';
+import { getGuiController } from '../../controllers/guiController';
 import Building from './building';
-import * as short from 'short-uuid';
-const uuid = short();
 import Entity from './entity';
-import { brotliDecompressSync } from 'zlib';
 
 class Unit extends Entity {
   private _target: Building;

@@ -1,7 +1,7 @@
 // import MainScene from '../scenes/serverScene';
 import { Engine, World, Bodies, Body, Vector } from 'matter-js';
-import { getSeed } from '../utils/seed';
-import Entity from '../entities/entity';
+import { getSeed } from '../../utils/seed';
+import Entity from './entity';
 
 class Building extends Entity {
   public readonly body: Body;

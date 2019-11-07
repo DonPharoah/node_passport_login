@@ -6,7 +6,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["node_modules/@types", "src/interfaces"],
+    "typeRoots": ["node_modules/@types", "src/models"],
     "lib": ["es2015", "es2017", "es6"]
   },
   "include": ["src/**/*"]

@@ -2,7 +2,8 @@ import * as Phaser from 'phaser';
 import UIPlugin from '../rex-ui/templates/ui/ui-plugin.js';
 import { initDebugGui_sceneSelect } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
-import UIScene from './scenes/uiScene';
+import UIScene from './views/uiScene';
+import { initGuiController } from './controllers/guiController';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
@@ -33,13 +34,16 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(gameConfig);
+
+// put things here to load AFTER everything else has.
 window.onload = () => {
+  initGuiController(game);
+  initDebugGui_sceneSelect(game);
   let canvas = document.querySelector('canvas');
   canvas.oncontextmenu = (e) => {
     e.preventDefault();
   };
 };
-initDebugGui_sceneSelect(game);
 
 /*
     ( uwu *pounces you* )

@@ -1,21 +1,22 @@
-import ClientScene from '../scenes/clientScene';
+import ClientScene from '../../scenes/clientScene';
+import GuiController, { getGuiController } from '../../controllers/guiController';
 import * as short from 'short-uuid';
-const uuid = short();
-declare let GameObject: Phaser.GameObjects.GameObject;
 import Entity from './entity';
 
+const uuid = short();
+
 class Building extends Entity {
+  private guiController: GuiController;
   private _rectangle: Phaser.GameObjects.Rectangle;
-  // private ID: number;
   private static FILL_COLOR = 0xffffff;
   private static STROKE_COLOR = 0x888888;
-
   public description: string = 'Building';
   public clientScene: ClientScene;
 
   constructor(scene: ClientScene, x: number, y: number, id: string, ownerId: string) {
     super(scene, 'building', ownerId, id);
     this.clientScene = scene;
+    this.guiController = getGuiController();
     this._rectangle = scene.add.rectangle(x, y, 50, 50, Building.FILL_COLOR);
     this._rectangle.setInteractive();
     this._rectangle.setDataEnabled();
@@ -38,11 +39,12 @@ class Building extends Entity {
 
   public selectedEvent() {
     this._rectangle.strokeColor = 0x0000ff;
-    this.clientScene.showMessage(`Selected: ${this.description}, ID: ${this.id}`);
+    this.guiController.setSelectedEntityText(`${this.description}, ID: ${this.id}`);
     return this;
   }
   public deselectedEvent() {
     this._rectangle.strokeColor = 0x888888;
+    this.guiController.setSelectedEntityText('');
     return this;
   }
 

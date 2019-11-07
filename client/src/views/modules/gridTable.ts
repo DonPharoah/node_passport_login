@@ -1,12 +1,12 @@
-import ClientScene from '../../scenes/clientScene';
-import UIScene from '../../scenes/uiScene';
-import buildingList from './ui-lists/buildings/buildingList';
+import UIScene from '../uiScene';
+import buildingList from '../../models/schemas/buildings/buildingListForGui';
 
 type itemElement = { id: number; color: number };
 const COLOR_PRIMARY = 0x4e342e;
 const COLOR_LIGHT = 0x7b5e57;
 const COLOR_DARK = 0x260e04;
-const Random = Phaser.Math.Between;
+let gridTable;
+// const Random = Phaser.Math.Between;
 
 // const getItems = (count): itemElement[] => {
 //   var data: itemElement[] = [];
@@ -21,15 +21,14 @@ const Random = Phaser.Math.Between;
 
 const initGridTable = (scene: UIScene) => {
   let gameWidth = scene.game.config.width;
-  let gameHeight = scene.game.config.height;
-  var scrollMode = 1; // 0:vertical, 1:horizontal
-  var gridTable = scene.rexUI.add
+  let scrollMode = 1; // 0:vertical, 1:horizontal
+  gridTable = scene.rexUI.add
     .gridTable({
       // x: scene.game.config.width / 2,
       // y: gameHeight - 300,
       // width: scene.game.config.width,
-      width: (scene.game.config.width as number) / 2,
-      height: 230,
+      width: (gameWidth as number) / 2,
+      height: 200,
       anchor: {
         left: '0%',
         bottom: '100%'
@@ -37,18 +36,19 @@ const initGridTable = (scene: UIScene) => {
       scrollMode: scrollMode,
       background: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222),
       table: {
-        cellWidth: 70,
-        cellHeight: 70,
-        columns: 2,
+        cellWidth: 75,
+        cellHeight: 60,
+        columns: 3,
         mask: {
           padding: 10
         },
+        // interactive: true,
         reuseCellContainer: true
       },
-      slider: {
-        track: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 10, COLOR_DARK),
-        thumb: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 13, COLOR_LIGHT)
-      },
+      // slider: {
+      //   track: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 10, COLOR_DARK),
+      //   thumb: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 13, COLOR_LIGHT)
+      // },
       header: scene.rexUI.add.label({
         width: 30,
         height: undefined,
@@ -81,9 +81,11 @@ const initGridTable = (scene: UIScene) => {
             text: scene.add.text(0, 0, item.name, { fontSize: 12 }),
 
             space: {
-              icon: 10,
-              left: scrollMode === 0 ? 15 : 0,
-              top: scrollMode === 0 ? 0 : 15
+              icon: 0,
+              left: 5,
+              right: 5,
+              bottom: 0,
+              top: 10
             }
           });
           // console.log(cell.index + ': create new cell-container');
@@ -92,7 +94,7 @@ const initGridTable = (scene: UIScene) => {
         }
 
         // Set properties from item value
-        cellContainer.setMinSize(width, height); // Size might changed in this demo
+        // cellContainer.setMinSize(width, height); // Size might changed in this demo
         // cellContainer.getElement('text').setText('Unit ' + item.name); // Set text of text object
         cellContainer
           .getElement('icon')
@@ -118,21 +120,10 @@ const initGridTable = (scene: UIScene) => {
         .setStrokeStyle(2, COLOR_DARK)
         .setDepth(0);
     })
-    // .on('cell.click', function (cellContainer, cellIndex) {
-    //     this.print.text += 'click ' + cellIndex + ': ' + cellContainer.text + '\n';
-    // }, this)
-    .on('cell.1tap', (cellContainer, cellIndex) => {
-      // this.print.text += '1 tap (' + cellIndex + ': ' + cellContainer.text + ')\n';
-    })
-    .on('cell.2tap', (cellContainer, cellIndex) => {
-      // this.print.text += '2 taps (' + cellIndex + ': ' + cellContainer.text + ')\n';
-    })
-    .on('cell.pressstart', (cellContainer, cellIndex) => {
-      // this.print.text += 'press-start (' + cellIndex + ': ' + cellContainer.text + ')\n';
-    })
-    .on('cell.pressend', (cellContainer, cellIndex) => {
-      console.log('cellContainer: ' + cellContainer);
+    .on('cell.click', (cellContainer, cellIndex) => {
+      console.log("running cell's callback...");
+      gridTable.items[cellIndex].handler();
     });
 };
-
-export default initGridTable;
+export const getGridTable = () => gridTable;
+export { initGridTable };
