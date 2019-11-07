@@ -51,6 +51,13 @@ class ServerScene {
     this.io.emit(notifier, { x, y, id, ownerId, targetId });
   }
 
+  public notifyClientOfEntity(clientSocket: SocketIO.Socket, newEntity, notifier: Events, targetId?: string) {
+    const { x, y } = newEntity.body.position;
+    const { ownerId } = newEntity;
+    const id = newEntity.id;
+    clientSocket.emit(notifier, { x, y, id, ownerId, targetId });
+  }
+
   public handleSockets() {
     this.pingNamespace = this.io.of('/ping-namespace');
     this.pingNamespace.on(Events.CONNECTION, (socket) => {
@@ -66,6 +73,12 @@ class ServerScene {
         name: `Player${Math.round(Math.random() * 1000) + 1}`
       };
       socket.broadcast.emit(Events.CONNECTION, this.players[socket.id].name);
+      // load enttiies to client when client connects
+      Object.keys(this.buildings).forEach((currentId) => {
+        //addBuildingToScene(buildings[currentId]);
+        this.notifyClientOfEntity(socket, this.buildings[currentId], Events.NEW_BUILDING_ADDED);
+      });
+      //todo units
 
       socket.on(Events.CHANGE_NAME, (name) => {
         // this.addUnitToSceneAndNotify(new Unit(this, 50, 50));
