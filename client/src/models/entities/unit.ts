@@ -13,7 +13,7 @@ class Unit extends Entity {
 
   constructor(scene: ClientScene, x: number, y: number, id: string, ownerId: string, target?: Building) {
     super(scene, 'unit', ownerId, id);
-    this._rectangle = scene.add.rectangle(x, y, 10, 10, Unit.FILL_COLOR) as any;
+    this._rectangle = scene.add.rectangle(x, y, 10, 10, Unit.FILL_COLOR).setStrokeStyle(1, 0x999999) as any;
     scene.physics.add.existing(this._rectangle);
     this._target = target;
     const targetPosition = this._target.rectangle.getCenter();

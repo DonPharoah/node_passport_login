@@ -246,6 +246,7 @@ class ClientScene extends Phaser.Scene {
     }
     if (this.keyESC.isDown) {
       this.currentSelected.forEach((current) => current.deselectedEvent());
+      this.currentSelected = [];
     }
   }
 }
