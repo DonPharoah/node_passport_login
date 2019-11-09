@@ -13,8 +13,9 @@ class Building extends Entity {
   public description: string = 'Building';
   public clientScene: ClientScene;
 
-  constructor(scene: ClientScene, x: number, y: number, id: string, ownerId: string) {
+  constructor(scene: ClientScene, position: { x; y }, id: string, ownerId: string) {
     super(scene, 'building', ownerId, id);
+    const { x, y } = position;
     this.clientScene = scene;
     this.guiController = getGuiController();
     this._rectangle = scene.add.rectangle(x, y, 50, 50, Building.FILL_COLOR);

@@ -1,6 +1,6 @@
 import { getIo } from '../utils/server';
 import { getSeed } from '../utils/seed';
-import { Engine, World, Bodies, Body } from 'matter-js';
+import { Bounds, Composite, Events as MatterEvents, Engine, World, Bodies, Body } from 'matter-js';
 import Building from '../models/entities/building';
 import Unit from '../models/entities/unit';
 import { Events } from '../models/schemas/eventConstants';
@@ -31,31 +31,41 @@ class ServerScene {
     this.initPhysics();
     this.startPhysicsUpdate();
     this.startServerUpdateTick();
-  }
-
-  public sendUnitPositions() {
-    //for each unit on map, key value pair for owning player ID
-    // return this.testUnit.getPosition();
-    // const { x, y } = this.box.position;
-    // return { x, y };
+    this.handleCollisionEvents();
   }
 
   public addEntityToSceneAndNotify(group, newEntity, notifier: Events, targetId?: string) {
     console.log('Adding entity to server scene...');
-    const { x, y } = newEntity.body.position;
+    const position = newEntity.body.position;
     const { ownerId } = newEntity;
     const id = newEntity.id;
-    console.log(`Entity '${newEntity.id}' added at: ${x}, ${y}`);
+    console.log(`Entity '${newEntity.id}' added at: ${position.x}, ${position.y}`);
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
-    this.io.emit(notifier, { x, y, id, ownerId, targetId });
+    this.io.emit(notifier, { position, id, ownerId, targetId });
   }
 
-  public notifyClientOfEntity(clientSocket: SocketIO.Socket, newEntity, notifier: Events, targetId?: string) {
-    const { x, y } = newEntity.body.position;
-    const { ownerId } = newEntity;
-    const id = newEntity.id;
-    clientSocket.emit(notifier, { x, y, id, ownerId, targetId });
+  public notifyClientOfEntities(clientSocket: SocketIO.Socket) {
+    let unitsToSend = [];
+    let buildingsToSend = [];
+    Object.keys(this.buildings).forEach((currentId) => {
+      let currentBuilding = this.buildings[currentId];
+      const position = currentBuilding.body.position;
+      const { ownerId } = currentBuilding;
+      const id = currentBuilding.id;
+      const payload = { position, id, ownerId };
+      buildingsToSend.push(payload);
+    });
+    Object.keys(this.units).forEach((currentId) => {
+      let currentUnit = this.units[currentId];
+      const position = currentUnit.body.position;
+      const { ownerId } = currentUnit;
+      const id = currentUnit.id;
+      const payload = { position, id, ownerId };
+      unitsToSend.push(payload);
+    });
+    clientSocket.emit(Events.LOAD_ALL_BUILDINGS, buildingsToSend);
+    clientSocket.emit(Events.LOAD_ALL_UNITS, unitsToSend);
   }
 
   public handleSockets() {
@@ -73,12 +83,8 @@ class ServerScene {
         name: `Player${Math.round(Math.random() * 1000) + 1}`
       };
       socket.broadcast.emit(Events.CONNECTION, this.players[socket.id].name);
-      // load enttiies to client when client connects
-      Object.keys(this.buildings).forEach((currentId) => {
-        //addBuildingToScene(buildings[currentId]);
-        this.notifyClientOfEntity(socket, this.buildings[currentId], Events.NEW_BUILDING_ADDED);
-      });
-      //todo units
+
+      this.notifyClientOfEntities(socket);
 
       socket.on(Events.CHANGE_NAME, (name) => {
         // this.addUnitToSceneAndNotify(new Unit(this, 50, 50));
@@ -109,11 +115,37 @@ class ServerScene {
       socket.on(
         Events.PLAYER_ISSUE_COMMAND,
         (data: { x: number; y: number; selectedId: string; targetId: string }) => {
-          const { x, y, targetId } = data;
-          const newUnit = new Unit({ x, y }, 30, socket.id, this.findBuildingById(targetId));
-          this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, targetId);
+          console.log(`From server: calling PLAYER_ISSUE_COMMAND`);
+
+          const { targetId, selectedId } = data;
+          let x = 0,
+            y = 0,
+            newUnit,
+            targetBuilding;
+          try {
+            ({ x, y } = this.findBuildingById(selectedId).body.position);
+          } catch (e) {
+            console.log(e);
+          }
+
+          try {
+            targetBuilding = this.findBuildingById(targetId);
+          } catch (e) {
+            console.log(e);
+          }
+          if (targetBuilding) {
+            newUnit = new Unit({ x, y }, 30, socket.id, targetBuilding);
+            this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, targetId);
+          }
         }
       );
+    });
+  }
+
+  private handleCollisionEvents() {
+    MatterEvents.on(this.world, 'collisionStart', (event) => {
+      let pairs = event.pairs;
+      pairs.bodyA;
     });
   }
 
@@ -135,9 +167,23 @@ class ServerScene {
     }, 1000 / 30);
   }
 
+  public sendUnitPositions() {
+    let unitsToSend = [];
+    Object.keys(this.units).forEach((currentId) => {
+      let currentUnit = this.units[currentId];
+      const position = currentUnit.body.position;
+      const { ownerId } = currentUnit;
+      const id = currentUnit.id;
+      const payload = { position, id };
+      unitsToSend.push(payload);
+    });
+    return unitsToSend;
+  }
+
   public initPhysics() {
     this.engine = Engine.create();
     this.world = this.engine.world;
+    this.world.gravity.scale = 0;
     // this.box = Bodies.rectangle(400, 200, 80, 80);
     // this.ground = Bodies.rectangle(400, 500, 500, 30, { isStatic: true });
     // this.add.rectangle(400, 50, 500, 30, 0xffffff);

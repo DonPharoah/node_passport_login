@@ -11,14 +11,17 @@ class Unit extends Entity {
   public readonly ownerId: string;
   private static FILL_COLOR = 0xffffff;
 
-  constructor(scene: ClientScene, x: number, y: number, id: string, ownerId: string, target?: Building) {
+  constructor(scene: ClientScene, position: { x; y }, id: string, ownerId: string, target?: Building) {
     super(scene, 'unit', ownerId, id);
-    this._rectangle = scene.add.rectangle(x, y, 10, 10, Unit.FILL_COLOR).setStrokeStyle(1, 0x999999) as any;
-    scene.physics.add.existing(this._rectangle);
-    this._target = target;
-    const targetPosition = this._target.rectangle.getCenter();
+    this._rectangle = scene.add
+      .rectangle(position.x, position.y, 10, 10, Unit.FILL_COLOR)
+      .setStrokeStyle(1, 0x999999) as any;
+    // scene.physics.add.existing(this._rectangle);
+
+    // this._target = target;
+    // const targetPosition = this._target.rectangle.getCenter();
     const currentPosition = this._rectangle.getCenter();
-    const distance = targetPosition.subtract(currentPosition);
+    //const distance = targetPosition.subtract(currentPosition);
     scene.units.add(this);
   }
   selectedEvent() {
@@ -26,6 +29,9 @@ class Unit extends Entity {
   }
   deselectedEvent() {
     return this;
+  }
+  public setPosition({ x, y }) {
+    this._rectangle.setPosition(x, y);
   }
   //public update() {}
 }

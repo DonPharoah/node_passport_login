@@ -2,6 +2,8 @@
 import { Engine, World, Bodies, Body, Vector } from 'matter-js';
 import { getSeed } from '../../utils/seed';
 import Entity from './entity';
+import { Bounds, Composite, Events as MatterEvents } from 'matter-js';
+import Unit from './unit';
 
 class Building extends Entity {
   public readonly body: Body;
@@ -13,7 +15,16 @@ class Building extends Entity {
     const seed = getSeed();
     this.ownerId = ownerId;
     this.id = seed.generate();
-    this.body = Bodies.circle(x, y, radius, { isStatic: true });
+    this.body = Bodies.circle(x, y, radius, { isStatic: true, isSensor: true});
+  
+    // MatterEvents.on(,'collisionStart',(event) => {
+      
+    // });
+
+    
+
   }
+
+  //public onCollision(entity: Unit) {}
 }
 export default Building;

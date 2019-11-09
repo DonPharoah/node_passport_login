@@ -53,8 +53,8 @@ class ClientScene extends Phaser.Scene {
     // this.starfield = this.add.tileSprite(500, 500, 1000, 1000, 'starfield');
     this.initKeyboardKeys();
     this.handleSockets();
-    this.howie = this.sound.add('howie', { volume: 0.2 });
-    this.wilhelm = this.sound.add('wilhelm', { volume: 0.2 });
+    this.howie = this.sound.add('howie', { volume: 0 });
+    this.wilhelm = this.sound.add('wilhelm', { volume: 0 });
     this.buildings = this.add.group([], {
       classType: Phaser.GameObjects.Sprite,
       name: 'buildings'
@@ -148,13 +148,20 @@ class ClientScene extends Phaser.Scene {
       this.data.set('userName', newName);
       this.guiController.showOverlayMessage(`Server allowed name change to: ${newName}`);
     });
-    this.socket.on(Events.SERVER_STATUS_UPDATE, (position) => {
-      // console.log(position);
-      // this.updateSquarePosition(position);
+    this.socket.on(Events.SERVER_STATUS_UPDATE, (unitPositions: any[]) => {
+      unitPositions.forEach((current) => {
+        const { position, id } = current;
+        try {
+          this.findUnitById(id).setPosition(position);
+        } catch (e) {
+          console.log(e);
+        }
+      });
     });
     this.socket.on(Events.NEW_UNIT_ADDED, (newUnit) => {
       console.log(newUnit);
       this.addNewUnitToScene(newUnit);
+      this.howie.play();
     });
     this.socket.on(Events.NEW_BUILDING_ADDED, (newBuilding) => {
       console.log(newBuilding);
@@ -162,10 +169,21 @@ class ClientScene extends Phaser.Scene {
       this.addNewBuildingToScene(newBuilding);
     });
 
-    // this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
-    //   console.log(newEntity);
-    //   //this.addNewBuildingToScene(newEntity);
-    // });
+    this.socket.on(Events.LOAD_ALL_BUILDINGS, (buildings) => {
+      buildings.forEach((payload) => {
+        this.addNewBuildingToScene(payload);
+      });
+    });
+    this.socket.on(Events.LOAD_ALL_UNITS, (units) => {
+      units.forEach((payload) => {
+        this.addNewUnitToScene(payload);
+      });
+    });
+
+    this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
+      console.log(newEntity);
+      //this.addNewBuildingToScene(newEntity);
+    });
 
     this.pingSocket.on(Events.PONG_EVENT, () => {
       let latency = Date.now() - this.pingStartTime;
@@ -209,22 +227,27 @@ class ClientScene extends Phaser.Scene {
   }
 
   public findUnitById(id: string): Unit {
-    let gameObject;
-    //lookup id
-    return gameObject;
+    let unitArray = this.units.getChildren();
+    let foundUnit = unitArray.find((currentUnit: Unit) => {
+      return currentUnit.id === id;
+    });
+    if (!foundUnit) throw new Error(`Unit ${id} could not be found`);
+    return foundUnit as Unit;
   }
 
-  public addNewBuildingToScene(options: { x: number; y: number; id: string; ownerId: string }) {
-    const { x, y, id, ownerId } = options;
-    const newBuilding = new Building(this, x, y, id, ownerId);
-    console.log(this.buildings.getChildren());
+  public addNewBuildingToScene(options: { position: { x; y }; id: string; ownerId: string }) {
+    const { position, id, ownerId } = options;
+    const newBuilding = new Building(this, position, id, ownerId);
+    //console.log(this.buildings.getChildren());
+    //console.log(position);
     this.add.existing(newBuilding);
   }
 
-  public addNewUnitToScene(options: { x: number; y: number; id: string; ownerId: string; targetId: string }) {
-    const { x, y, id, ownerId, targetId } = options;
-    const newUnit = new Unit(this, x, y, id, ownerId, this.findBuildingById(targetId));
-    // this.add.existing(newUnit);
+  public addNewUnitToScene(options: { position: { x; y }; id: string; ownerId: string; targetId?: string }) {
+    const { position, id, ownerId, targetId } = options;
+    const newUnit = new Unit(this, position, id, ownerId);
+    //console.log(position);
+    this.add.existing(newUnit); //not showing
   }
 
   public startPingServer() {

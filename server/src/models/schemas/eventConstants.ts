@@ -13,5 +13,7 @@ export const enum Events {
   SERVER_STATUS_UPDATE = 'serverStatusUpdate',
   ERROR_STATUS = 'errorStatus',
   PLAYER_CONSTRUCT_BUILDING = 'playerConstructBuilding',
-  PLAYER_ISSUE_COMMAND = 'playerIssueCommand'
+  PLAYER_ISSUE_COMMAND = 'playerIssueCommand',
+  LOAD_ALL_BUILDINGS = 'loadBuildings',
+  LOAD_ALL_UNITS = 'loadUnits'
 }

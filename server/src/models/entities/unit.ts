@@ -13,16 +13,18 @@ class Unit extends Entity {
     const { x, y } = position;
     const seed = getSeed();
     this.ownerId = ownerId;
-    this.body = Bodies.circle(x, y, radius);
+    this.body = Bodies.circle(x, y, radius, { isSensor: true, frictionAir: 0 });
     this._target = target;
+
     this.id = seed.generate();
     if (target) {
       const targetPosition = this._target.body.position;
       const currentPosition = this.body.position;
       const distance = Vector.sub(targetPosition, currentPosition);
-      Body.setVelocity(this.body, distance);
+      console.log("setting body's velocity...");
+      Body.setVelocity(this.body, Vector.div(distance, 100));
     } else {
-      Body.setVelocity(this.body, { x: 10, y: 20 });
+      //Body.setVelocity(this.body, { x: 10, y: 20 });
     }
   }
 }
