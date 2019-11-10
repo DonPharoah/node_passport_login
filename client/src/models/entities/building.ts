@@ -52,5 +52,8 @@ class Building extends Entity {
   get rectangle() {
     return this._rectangle;
   }
+  public remove() {
+    this._rectangle.destroy();
+  }
 }
 export default Building;

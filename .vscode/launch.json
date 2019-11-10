@@ -5,18 +5,25 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Current TS File",
       "type": "node",
-      "request": "attach",
-      "name": "Attach by Process ID",
-      "processId": "${command:PickProcess}"
+      "request": "launch",
+      "args": ["${relativeFile}"],
+      "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+      "sourceMaps": true,
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector"
     },
     {
-      "type": "chrome",
+      "name": "FUCKING WORK",
+      "type": "node",
       "request": "launch",
-      "name": "Launch Chrome Against localhost",
-      "webRoot": "${workspaceFolder}",
-      "url": "http://localhost:8080",
-      "sourceMaps": true
+      "protocol": "inspector",
+      "cwd": "${workspaceRoot}",
+      "sourceMaps": true,
+      "runtimeExecutable": "${workspaceRoot}/server/node_modules/.bin/ts-node-dev",
+      "args": ["${workspaceRoot}/server/src/utils/server.ts"],
+      "restart": true
     }
   ]
 }

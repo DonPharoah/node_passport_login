@@ -1,3 +1,5 @@
+import ClientScene from '../../scenes/clientScene';
+
 abstract class Entity extends Phaser.GameObjects.GameObject implements Selectable {
   public readonly ownerId: string;
   public readonly id: string;
@@ -9,5 +11,7 @@ abstract class Entity extends Phaser.GameObjects.GameObject implements Selectabl
     this.ownerId = ownerId;
     this.id = id;
   }
+
+  public abstract remove();
 }
 export default Entity;

@@ -33,6 +33,9 @@ class Unit extends Entity {
   public setPosition({ x, y }) {
     this._rectangle.setPosition(x, y);
   }
+  public remove() {
+    this._rectangle.destroy();
+  }
   //public update() {}
 }
 

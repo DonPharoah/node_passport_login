@@ -128,6 +128,7 @@ class ClientScene extends Phaser.Scene {
       }
     }
   }
+
   public handleSockets() {
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
@@ -168,6 +169,13 @@ class ClientScene extends Phaser.Scene {
       this.guiController.showOverlayMessage('New building added!');
       this.addNewBuildingToScene(newBuilding);
     });
+    this.socket.on(Events.BUILDING_REMOVED, (removeBuildingId) => {
+      this.removeBuilding(removeBuildingId);
+      this.guiController.showOverlayMessage('Building removed.');
+    });
+    this.socket.on(Events.UNIT_REMOVED, (removeUnitId) => {
+      this.removeUnit(removeUnitId);
+    });
 
     this.socket.on(Events.LOAD_ALL_BUILDINGS, (buildings) => {
       buildings.forEach((payload) => {
@@ -183,6 +191,10 @@ class ClientScene extends Phaser.Scene {
     this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
       console.log(newEntity);
       //this.addNewBuildingToScene(newEntity);
+    });
+
+    this.socket.on(Events.DEBUG_MESSAGE, (message) => {
+      this.guiController.appendToTextArea(message);
     });
 
     this.pingSocket.on(Events.PONG_EVENT, () => {
@@ -248,6 +260,21 @@ class ClientScene extends Phaser.Scene {
     const newUnit = new Unit(this, position, id, ownerId);
     //console.log(position);
     this.add.existing(newUnit); //not showing
+  }
+
+  public removeBuilding(removeBuildingId) {
+    const deleteBuilding = this.findBuildingById(removeBuildingId);
+    deleteBuilding.destroy();
+    deleteBuilding.remove();
+    this.guiController.showOverlayError('Building removed');
+  }
+  public removeUnit(removeUnitId) {
+    const deleteUnit = this.findUnitById(removeUnitId);
+    deleteUnit.destroy();
+    deleteUnit.remove();
+    this.guiController.showOverlayMessage('Unit removed.');
+    console.log('new state of unit group:');
+    console.log(this.units.getChildren());
   }
 
   public startPingServer() {

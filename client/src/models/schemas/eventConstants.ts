@@ -1,6 +1,8 @@
 export const enum Events {
   NEW_UNIT_ADDED = 'newUnitAdded',
   NEW_BUILDING_ADDED = 'newBuildingAdded',
+  BUILDING_REMOVED = 'buildingRemoved',
+  UNIT_REMOVED = 'unitRemoved',
   CONNECTION = 'connection',
   DISCONNECT = 'disconnect',
   PING_EVENT = 'pingEvent',
@@ -12,6 +14,7 @@ export const enum Events {
   ISSUE_UNIT_COMMAND = 'issueUnitCommand',
   SERVER_STATUS_UPDATE = 'serverStatusUpdate',
   ERROR_STATUS = 'errorStatus',
+  DEBUG_MESSAGE = 'debugMessage',
   PLAYER_CONSTRUCT_BUILDING = 'playerConstructBuilding',
   PLAYER_ISSUE_COMMAND = 'playerIssueCommand',
   LOAD_ALL_BUILDINGS = 'loadBuildings',

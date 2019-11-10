@@ -1,6 +1,14 @@
 import { getIo } from '../utils/server';
 import { getSeed } from '../utils/seed';
-import { Bounds, Composite, Events as MatterEvents, Engine, World, Bodies, Body } from 'matter-js';
+import {
+  Bounds,
+  Composite,
+  Events as MatterEvents,
+  Engine,
+  World,
+  Bodies,
+  Body
+} from '../../externalLibraries/matter-dev.js';
 import Building from '../models/entities/building';
 import Unit from '../models/entities/unit';
 import { Events } from '../models/schemas/eventConstants';
@@ -112,6 +120,7 @@ class ServerScene {
         const newBuilding = new Building({ x, y }, 30, socket.id);
         this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
       });
+
       socket.on(
         Events.PLAYER_ISSUE_COMMAND,
         (data: { x: number; y: number; selectedId: string; targetId: string }) => {
@@ -134,7 +143,7 @@ class ServerScene {
             console.log(e);
           }
           if (targetBuilding) {
-            newUnit = new Unit({ x, y }, 30, socket.id, targetBuilding);
+            newUnit = new Unit(this, { x, y }, 30, socket.id, targetBuilding);
             this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, targetId);
           }
         }
@@ -143,10 +152,7 @@ class ServerScene {
   }
 
   private handleCollisionEvents() {
-    MatterEvents.on(this.world, 'collisionStart', (event) => {
-      let pairs = event.pairs;
-      pairs.bodyA;
-    });
+    MatterEvents.on(this.engine, 'collisionStart', function(event) {});
   }
 
   public findBuildingById(id: string): Building {
@@ -159,6 +165,20 @@ class ServerScene {
     let unit = this.units[id] ? this.units[id] : null;
     if (!unit) throw new Error('Unit could not be found');
     return unit;
+  }
+
+  public removeBuilding(buildingId) {
+    World.remove(this.world, this.buildings[buildingId].body);
+    delete this.buildings[buildingId];
+    this.io.emit(Events.BUILDING_REMOVED, buildingId);
+  }
+
+  public removeUnit(unitId) {
+    if (this.units[unitId]) {
+      World.remove(this.world, this.units[unitId].body, true);
+      delete this.units[unitId];
+      this.io.emit(Events.UNIT_REMOVED, unitId);
+    }
   }
 
   public startServerUpdateTick() {

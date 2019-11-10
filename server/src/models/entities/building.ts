@@ -15,14 +15,17 @@ class Building extends Entity {
     const seed = getSeed();
     this.ownerId = ownerId;
     this.id = seed.generate();
-    this.body = Bodies.circle(x, y, radius, { isStatic: true, isSensor: true});
-  
+    this.body = Bodies.circle(x, y, radius, { isStatic: true, isSensor: false });
+    // @ts-ignore
+    this.body.ownerEntity = this;
+    // @ts-ignore
+    this.body.onCollision = (collidedObject) => {
+      //console.log(`COLLISION: UNIT ${this.ownerId} AND BUILDING ${collidedObject.ownerEntity.ownerId}`);
+    };
+
     // MatterEvents.on(,'collisionStart',(event) => {
-      
+
     // });
-
-    
-
   }
 
   //public onCollision(entity: Unit) {}
