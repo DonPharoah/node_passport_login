@@ -9,6 +9,7 @@ export class Unit extends Entity {
     body: Phaser.Physics.Arcade.Body;
   };
   public readonly ownerId: string;
+  public readonly DESCRIPTION = 'Unit';
   private static FILL_COLOR = 0xffffff;
 
   constructor(scene: ClientScene, position: { x; y }, id: string, ownerId: string, target?: Building) {

@@ -102,7 +102,10 @@ class ServerScene {
       });
 
       socket.on(Events.GET_ALL_USER_NAMES, () => {
-        socket.emit(Events.GET_ALL_USER_NAMES, Object.values(this.players).map((player) => player.name));
+        socket.emit(
+          Events.GET_ALL_USER_NAMES,
+          Object.values(this.players).map((player) => player.name)
+        );
       });
 
       socket.on(Events.PLAYER_DISCONNECTED, () => {
@@ -209,12 +212,22 @@ class ServerScene {
     // this.add.rectangle(400, 50, 500, 30, 0xffffff);
     // this.addEntityToSceneAndNotify(this.box);
     // World.add(world, [this.box, this.ground]);
+    const newBuilding = new Building({ x: 500, y: 500 }, 30, '000000');
+    this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
+  }
+
+  public updateUnitPositons() {
+    Object.keys(this.units).forEach((currentId) => {
+      let currentUnit = this.units[currentId];
+      currentUnit.updatePosition();
+    });
   }
 
   public startPhysicsUpdate() {
     setInterval(() => {
       // Body.applyForce(this.box, { x: 0, y: 0 }, { x: 0, y: -0.1 });
       // this.box.position.x += 0.05;
+      this.updateUnitPositons();
       Engine.update(this.engine, 1000 / 60);
     }, 1000 / 60);
   }

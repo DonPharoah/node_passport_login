@@ -8,7 +8,7 @@ export class Building extends Entity {
   private static FILL_COLOR = 0xffffff;
   private static DEFAULT_COLOR = 0x888888;
   private static SELECTED_COLOR = 0x0000ff;
-  public description: string = 'Building';
+  public DESCRIPTION: string = 'Building';
   public clientScene: ClientScene;
 
   constructor(scene: ClientScene, position: { x; y }, id: string, ownerId: string) {

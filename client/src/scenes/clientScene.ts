@@ -216,7 +216,7 @@ class ClientScene extends Phaser.Scene {
     this.mouseOversIndex = 0;
     // this.guiController.showMessage(`Selected: ${this.mouseOvers[0].id}`);
     this.mouseOvers.forEach((current) => {
-      this.guiController.appendToTextArea(current.id);
+      this.guiController.appendToTextArea(`Selected: ${current.DESCRIPTION} ${current.id}`);
     });
   }
 
