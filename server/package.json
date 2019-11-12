@@ -6,7 +6,7 @@
   "scripts": {
     "tsc": "tsc",
     "runOnly": "ts-node ./src/utils/server.ts",
-    "watch": "ts-node-dev --inspect --respawn --transpileOnly ./src/utils/server.ts",
+    "watch": "ts-node-dev --transpileOnly ./src/utils/server.ts",
     "temp": "ts-node ./src/utils/server.ts",
     "start": "npm run watch"
   },

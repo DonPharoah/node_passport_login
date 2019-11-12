@@ -95,7 +95,7 @@ class ClientScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // prevent being able to click if over Minimap
       if (this.cameras.getCamerasBelowPointer(pointer).includes(this.minimapCamera) == false) {
-        this.handleRightClick(pointer);
+        this.clickHandler(pointer);
       }
     });
   }
@@ -103,9 +103,10 @@ class ClientScene extends Phaser.Scene {
   public update() {
     this.handleKeyboardKeys();
   }
-  public handleRightClick(pointer: Phaser.Input.Pointer) {
+  public clickHandler(pointer: Phaser.Input.Pointer) {
     let worldX = pointer.worldX;
     let worldY = pointer.worldY;
+    // right click
     if (pointer.rightButtonDown()) {
       if (this.mouseOvers.length > 0) {
         console.log(`right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`);
@@ -118,17 +119,21 @@ class ClientScene extends Phaser.Scene {
           targetId: this.mouseOvers[0].id
         });
       }
+      // left click
     } else {
-      const length = this.mouseOvers.length;
       const i = this.mouseOversIndex;
-      if (length > 0) {
-        //mouse is over objects
+      //mouse is over objects
+      if (this.mouseOvers.length > 0) {
+        // something is already selected
         if (this.currentSelected[0]) {
           let previouslySelected = this.currentSelected[0];
           previouslySelected.deselectedEvent();
         }
-        this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
-        this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
+        // check to make sure this is your building
+        if (this.mouseOvers[i].ownerId === this.socket.id) {
+          this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
+          this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
+        }
       } else {
         this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
       }
@@ -256,16 +261,13 @@ class ClientScene extends Phaser.Scene {
 
   public addNewBuildingToScene(options: { position: { x; y }; id: string; ownerId: string }) {
     const { position, id, ownerId } = options;
-    const newBuilding = new Building(this, position, id, ownerId);
-    //console.log(this.buildings.getChildren());
-    //console.log(position);
+    const newBuilding = new Building(this, position, id, ownerId, 1000);
     this.add.existing(newBuilding);
   }
 
   public addNewUnitToScene(options: { position: { x; y }; id: string; ownerId: string; targetId?: string }) {
-    const { position, id, ownerId, targetId } = options;
-    const newUnit = new Unit(this, position, id, ownerId);
-    //console.log(position);
+    const { position, id, ownerId } = options;
+    const newUnit = new Unit(this, position, id, ownerId, 500);
     this.add.existing(newUnit); //not showing
   }
 
