@@ -2,7 +2,7 @@ import { initGridTable } from './modules/gridTable';
 import { initTextArea } from './modules/textArea';
 import { initOverlayTexts } from './modules/overlayTexts';
 import GuiController, { getGuiController } from '../controllers/guiController';
-import UIPlugin from '../../rex-ui/templates/ui/ui-plugin.js';
+import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
 type rexUi = UIPlugin;
 
 class UIScene extends Phaser.Scene {

@@ -1,8 +1,11 @@
 import ClientScene from '../../scenes/clientScene';
 import GuiController, { getGuiController } from '../../controllers/guiController';
+import * as HealthBar from '../../../vendorModules/healthbar/HealthBar.js';
 import Entity from './entity';
 
-export class Building extends Entity {
+export class Building extends Entity implements Damagable {
+  public health: number;
+  public healthBar: HealthBar;
   private guiController: GuiController;
   private _rectangle: Phaser.GameObjects.Rectangle;
   private static FILL_COLOR = 0xffffff;
@@ -17,6 +20,7 @@ export class Building extends Entity {
     this.clientScene = scene;
     this.guiController = getGuiController();
     this._rectangle = scene.add.rectangle(x, y, 50, 50, Building.FILL_COLOR);
+    this.initHealthBar();
     this._rectangle.setInteractive();
     this._rectangle.setDataEnabled();
     this._rectangle.setData('selected', true);
@@ -47,6 +51,12 @@ export class Building extends Entity {
   get rectangle() {
     return this._rectangle;
   }
+  public initHealthBar(barConfig: BarConfig = { x: this._rectangle.x + 30, y: this._rectangle.y + 30 }) {
+    this.healthBar = new HealthBar(this.scene.game, barConfig);
+    this.healthBar.setPercent(100);
+  }
+  public onDamage() {}
+  public onDestroy() {}
   public remove() {
     this._rectangle.destroy();
   }

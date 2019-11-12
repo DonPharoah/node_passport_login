@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import UIPlugin from '../rex-ui/templates/ui/ui-plugin.js';
+import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
 // import UIPlugin from '../rex-ui/plugins/dist/rexuiplugin.min.js';
 import { initDebugGui_sceneSelect } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
