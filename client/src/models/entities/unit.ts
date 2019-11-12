@@ -1,9 +1,9 @@
 import ClientScene from '../../scenes/clientScene';
 import { getGuiController } from '../../controllers/guiController';
-import Building from './building';
+import { Building } from './building';
 import Entity from './entity';
 
-class Unit extends Entity {
+export class Unit extends Entity {
   private _target: Building;
   private _rectangle: Phaser.GameObjects.Rectangle & {
     body: Phaser.Physics.Arcade.Body;
@@ -16,12 +16,7 @@ class Unit extends Entity {
     this._rectangle = scene.add
       .rectangle(position.x, position.y, 10, 10, Unit.FILL_COLOR)
       .setStrokeStyle(1, 0x999999) as any;
-    // scene.physics.add.existing(this._rectangle);
 
-    // this._target = target;
-    // const targetPosition = this._target.rectangle.getCenter();
-    const currentPosition = this._rectangle.getCenter();
-    //const distance = targetPosition.subtract(currentPosition);
     scene.units.add(this);
   }
   selectedEvent() {
@@ -36,7 +31,10 @@ class Unit extends Entity {
   public remove() {
     this._rectangle.destroy();
   }
-  //public update() {}
 }
 
-export default Unit;
+export namespace Unit {
+  export const enum Types {
+    TEST = 'test'
+  }
+}

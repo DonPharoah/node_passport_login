@@ -1,8 +1,11 @@
 interface BuildingSchema {
-  type: import('./buildingConstants').BuildingConstants;
+  type: import('../../entities/building').Building.Types;
   color: number;
   name: string;
   size: number;
+  health: number;
   handler: () => void;
 }
-type BuildingList = BuildingSchema[];
+interface BuildingData {
+  [buildingType: string]: BuildingSchema;
+}

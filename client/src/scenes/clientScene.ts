@@ -1,5 +1,5 @@
-import Building from '../models/entities/building';
-import Unit from '../models/entities/unit';
+import { Building } from '../models/entities/building';
+import { Unit } from '../models/entities/unit';
 import GuiController, { getGuiController } from '../controllers/guiController';
 import { getMinimapCamera, initMinimapCamera } from '../controllers/minimapController';
 import { initDebugGui_sceneCommands } from '../utils/debugGui';
@@ -41,6 +41,12 @@ class ClientScene extends Phaser.Scene {
   public preload() {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
+    // this.load.scenePlugin({
+    //   key: 'rexuiplugin',
+    //   url:
+    //     'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexuiplugin.min.js',
+    //   sceneKey: 'rexUI'
+    // });
     // this.load.image('starfield', '../../assets/images/starfield2.png');
   }
 
@@ -52,7 +58,7 @@ class ClientScene extends Phaser.Scene {
     this.minimapCamera = getMinimapCamera();
     // this.starfield = this.add.tileSprite(500, 500, 1000, 1000, 'starfield');
     this.initKeyboardKeys();
-    this.handleSockets();
+    // this.handleSockets();
     this.howie = this.sound.add('howie', { volume: 0 });
     this.wilhelm = this.sound.add('wilhelm', { volume: 0 });
     this.buildings = this.add.group([], {
@@ -175,6 +181,7 @@ class ClientScene extends Phaser.Scene {
     });
     this.socket.on(Events.UNIT_REMOVED, (removeUnitId) => {
       this.removeUnit(removeUnitId);
+      this.wilhelm.play();
     });
 
     this.socket.on(Events.LOAD_ALL_BUILDINGS, (buildings) => {
@@ -322,4 +329,5 @@ class ClientScene extends Phaser.Scene {
     }
   }
 }
+export let getClientSceneInstance;
 export default ClientScene;

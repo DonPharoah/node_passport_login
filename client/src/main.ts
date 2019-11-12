@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import UIPlugin from '../rex-ui/templates/ui/ui-plugin.js';
+// import UIPlugin from '../rex-ui/plugins/dist/rexuiplugin.min.js';
 import { initDebugGui_sceneSelect } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
@@ -27,7 +28,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   },
   scene: [ClientScene, UIScene],
   plugins: {
-    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI' }]
+    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI', sceneKey: 'rexUI' }]
   },
   parent: 'game',
   backgroundColor: '#000'
@@ -37,9 +38,12 @@ const game = new Phaser.Game(gameConfig);
 
 // put things here to load AFTER everything else has.
 window.onload = () => {
-  initGuiController(game);
-  initDebugGui_sceneSelect(game);
+  let clientScene = game.scene.getScene('mainScene') as ClientScene;
   let canvas = document.querySelector('canvas');
+
+  initGuiController(game);
+  clientScene.handleSockets();
+  initDebugGui_sceneSelect(game);
   canvas.oncontextmenu = (e) => {
     e.preventDefault();
   };

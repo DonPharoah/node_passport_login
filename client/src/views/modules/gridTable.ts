@@ -1,5 +1,5 @@
 import UIScene from '../uiScene';
-import buildingList from '../../models/schemas/buildings/buildingListForGui';
+import buildingData from '../../models/schemas/buildings/buildingData';
 
 type itemElement = { id: number; color: number };
 const COLOR_PRIMARY = 0x4e342e;
@@ -102,7 +102,7 @@ const initGridTable = (scene: UIScene) => {
           .setStrokeStyle(2, COLOR_DARK); // Set fill color of round rectangle object
         return cellContainer;
       },
-      items: buildingList,
+      items: Object.values(buildingData),
       draggable: false
     })
     .layout();

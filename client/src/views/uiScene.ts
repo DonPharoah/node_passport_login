@@ -11,7 +11,14 @@ class UIScene extends Phaser.Scene {
   constructor() {
     super({ key: 'uiScene', active: true, visible: true });
   }
-  preload() {}
+  preload() {
+    // this.load.scenePlugin({
+    //   key: 'rexuiplugin',
+    //   url:
+    //     'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexuiplugin.min.js',
+    //   sceneKey: 'rexUI'
+    // });
+  }
   create() {
     this.registry.set('userName', 'Default User Name');
     this.guiController = getGuiController();

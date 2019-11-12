@@ -1,15 +1,13 @@
 import ClientScene from '../../scenes/clientScene';
 import GuiController, { getGuiController } from '../../controllers/guiController';
-import * as short from 'short-uuid';
 import Entity from './entity';
 
-const uuid = short();
-
-class Building extends Entity {
+export class Building extends Entity {
   private guiController: GuiController;
   private _rectangle: Phaser.GameObjects.Rectangle;
   private static FILL_COLOR = 0xffffff;
-  private static STROKE_COLOR = 0x888888;
+  private static DEFAULT_COLOR = 0x888888;
+  private static SELECTED_COLOR = 0x0000ff;
   public description: string = 'Building';
   public clientScene: ClientScene;
 
@@ -27,24 +25,21 @@ class Building extends Entity {
 
     this._rectangle.on('pointerover', () => {
       scene.mouseOverEvent(this);
-      //this._rectangle.strokeColor = 0xaa0000;
-      //scene.wilhelm.play();
     });
     this._rectangle.on('pointerout', () => {
       scene.mouseOffEvent(this);
-      //this._rectangle.strokeColor = Building.STROKE_COLOR;
     });
 
     scene.buildings.add(this);
   }
 
   public selectedEvent() {
-    this._rectangle.strokeColor = 0x0000ff;
+    this._rectangle.strokeColor = Building.SELECTED_COLOR;
     this.guiController.setSelectedEntityText(`${this.description}, ID: ${this.id}`);
     return this;
   }
   public deselectedEvent() {
-    this._rectangle.strokeColor = 0x888888;
+    this._rectangle.strokeColor = Building.DEFAULT_COLOR;
     this.guiController.setSelectedEntityText('');
     return this;
   }
@@ -56,4 +51,14 @@ class Building extends Entity {
     this._rectangle.destroy();
   }
 }
-export default Building;
+
+export namespace Building {
+  export const enum Types {
+    TEST = 'test',
+    TEST2 = 'test2',
+    BARRACKS = 'barracks',
+    HOME_BASE = 'homeBase',
+    MINER = 'miner',
+    REPAIR_DRONE_FACTORY = 'repairDroneFactory'
+  }
+}
