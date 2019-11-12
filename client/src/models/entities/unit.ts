@@ -1,12 +1,15 @@
 import ClientScene from '../../scenes/clientScene';
-import * as HealthBar from '../../../vendorModules/healthbar/HealthBar.js';
 import { getGuiController } from '../../controllers/guiController';
 import { Building } from './building';
 import Entity from './entity';
 
 export class Unit extends Entity implements Damagable {
-  public health: number;
-  public healthBar: HealthBar;
+  private static HEALTH_BAR_FILL_COLOR: number = 0x00dd33;
+  public healthBarWidth: number;
+  public healthBarHeight: number;
+  public maxHealth: number = 1000; // change later to come from building type data
+  public currentHealth: number;
+  public healthBar: Phaser.GameObjects.Graphics;
   private _target: Building;
   private _rectangle: Phaser.GameObjects.Rectangle & {
     body: Phaser.Physics.Arcade.Body;
@@ -20,15 +23,18 @@ export class Unit extends Entity implements Damagable {
     position: { x; y },
     id: string,
     ownerId: string,
-    target?: Building,
-    hasHealthBar?: any
+    health: number = 500,
+    target?: Building
   ) {
     super(scene, 'unit', ownerId, id);
     this.clientScene = scene;
     this._rectangle = scene.add
       .rectangle(position.x, position.y, 10, 10, Unit.FILL_COLOR)
       .setStrokeStyle(1, 0x999999) as any;
-    this.initHealthBar();
+    // this.currentHealth = health;
+    // this.healthBarWidth = 35;
+    // this.healthBarHeight = this._rectangle.width / 7;
+    // this.initHealthBar();
     scene.units.add(this);
   }
   selectedEvent() {
@@ -40,14 +46,56 @@ export class Unit extends Entity implements Damagable {
   public setPosition({ x, y }) {
     this._rectangle.setPosition(x, y);
   }
-  public initHealthBar(barConfig: BarConfig = { x: this._rectangle.x + 30, y: this._rectangle.y + 30 }) {
-    this.healthBar = new HealthBar(this.clientScene.game, barConfig);
-    this.healthBar.setPercent(100);
+  public initHealthBar() {
+    this.healthBar = this.clientScene.add.graphics();
+    this.checkHealthAndRedraw();
   }
-  public onDamage() {}
-  public onDestroy() {}
+  public checkHealthAndRedraw() {
+    if (this.currentHealth >= this.maxHealth) {
+      this.currentHealth = this.maxHealth;
+      this.healthBar.clear();
+    } else if (this.currentHealth < this.maxHealth && this.currentHealth > 0) {
+      this.redrawHealthBar();
+    } else {
+      this.remove();
+    }
+  }
+  public redrawHealthBar() {
+    this.healthBar.clear();
+    this.healthBar.x = this._rectangle.x;
+    this.healthBar.y = this._rectangle.y;
+    this.healthBar.fillStyle(Unit.HEALTH_BAR_FILL_COLOR, 1);
+    this.healthBar.fillRect(
+      -this._rectangle.width / 2,
+      this._rectangle.height / 2 + 10,
+      this.healthBarWidth * (this.currentHealth / this.maxHealth),
+      10
+    );
+    this.healthBar.lineStyle(2, 0xffffff);
+    this.healthBar.strokeRect(
+      -this._rectangle.width / 2,
+      this._rectangle.height / 2 + 10,
+      this.healthBarWidth,
+      10
+    );
+    this.healthBar.setDepth(1);
+  }
+  public dealDamage(damageAmount: number) {
+    this.currentHealth -= damageAmount;
+    this.checkHealthAndRedraw();
+  }
+  public dealHealing(healingAmount: number) {
+    this.currentHealth += healingAmount;
+    this.checkHealthAndRedraw();
+  }
+  public setHealth(newHealth: number) {
+    this.currentHealth = newHealth;
+    this.checkHealthAndRedraw();
+  }
   public remove() {
+    // this.healthBar.destroy();
     this._rectangle.destroy();
+    this.destroy();
   }
 }
 
