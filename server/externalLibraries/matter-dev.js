@@ -2808,6 +2808,8 @@
                 pair = pairsList[i];
                 if (pair.isActive && Common.indexOf(activePairIds, pair.id) === -1) {
                   Pair.setActive(pair, false, timestamp);
+                  pair.bodyA.onCollisionEnd(pair.bodyB);
+                  pair.bodyB.onCollisionEnd(pair.bodyA);
                   collisionEnd.push(pair);
                 }
               }

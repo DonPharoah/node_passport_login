@@ -19,6 +19,10 @@ export const enum Events {
   PLAYER_ISSUE_COMMAND = 'playerIssueCommand',
   LOAD_ALL_BUILDINGS = 'loadBuildings',
   LOAD_ALL_UNITS = 'loadUnits',
+<<<<<<< HEAD
   BUILDING_DAMAGED = 'buildingDamaged',
   BUILDING_HEALED = 'buildingHealed'
+=======
+  UPDATE_ENTITY = 'updateEntity'
+>>>>>>> cfa2edee6f463f9bff06f5e60840dffe91cf763a
 }

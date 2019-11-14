@@ -4,12 +4,13 @@ import { getSeed } from '../../utils/seed';
 import Entity from './entity';
 import { Bounds, Composite, Events as MatterEvents } from 'matter-js';
 import Unit from './unit';
+import ServerScene from '../../scenes/serverScene';
 
 class Building extends Entity {
   public readonly body: Body;
   public readonly ownerId: string;
 
-  constructor(position: Vector, radius: number, ownerId: string) {
+  constructor(scene: ServerScene, position: Vector, radius: number, ownerId: string) {
     super();
     const { x, y } = position;
     const seed = getSeed();
@@ -22,11 +23,15 @@ class Building extends Entity {
     this.body.onCollision = (collidedObject) => {
       //console.log(`COLLISION: UNIT ${this.ownerId} AND BUILDING ${collidedObject.ownerEntity.ownerId}`);
     };
+    // @ts-ignore
+    this.body.onCollisionEnd = (collidedObject) => {};
 
-    // MatterEvents.on(,'collisionStart',(event) => {
-
-    // });
+    this.onDestroyedEvent = () => {
+      scene.removeBuilding(this.id);
+    };
   }
+
+  public onDestroyedEvent;
 
   //public onCollision(entity: Unit) {}
 }

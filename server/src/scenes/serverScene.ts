@@ -34,7 +34,6 @@ class ServerScene {
   }
 
   public init() {
-    // this.testUnit = new Unit(this, 0, 0);
     this.handleSockets();
     this.initPhysics();
     this.startPhysicsUpdate();
@@ -117,7 +116,7 @@ class ServerScene {
 
       socket.on(Events.PLAYER_CONSTRUCT_BUILDING, (data: { x: number; y: number }) => {
         const { x, y } = data;
-        const newBuilding = new Building({ x, y }, 30, socket.id);
+        const newBuilding = new Building(this, { x, y }, 30, socket.id);
         this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
       });
 
@@ -143,7 +142,7 @@ class ServerScene {
             console.log(e);
           }
           if (targetBuilding) {
-            newUnit = new Unit(this, { x, y }, 30, socket.id, targetBuilding);
+            newUnit = new Unit(this, { x, y }, 50, socket.id, targetBuilding, this.buildings[selectedId]);
             this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, targetId);
           }
         }
@@ -181,6 +180,10 @@ class ServerScene {
     }
   }
 
+  public updateEntity(entity: Entity) {
+    this.io.emit(Events.UPDATE_ENTITY, entity.id, entity.health);
+  }
+
   public startServerUpdateTick() {
     setInterval(() => {
       this.io.emit(Events.SERVER_STATUS_UPDATE, this.sendUnitPositions());
@@ -209,8 +212,9 @@ class ServerScene {
     // this.add.rectangle(400, 50, 500, 30, 0xffffff);
     // this.addEntityToSceneAndNotify(this.box);
     // World.add(world, [this.box, this.ground]);
-    const newBuilding = new Building({ x: 500, y: 500 }, 30, '000000');
-    this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
+
+    const testBuilding = new Building(this, { x: 500, y: 500 }, 30, '000000');
+    this.addEntityToSceneAndNotify(this.buildings, testBuilding, Events.NEW_BUILDING_ADDED);
   }
 
   public updateUnitPositons() {

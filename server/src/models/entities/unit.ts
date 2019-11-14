@@ -9,8 +9,17 @@ class Unit extends Entity {
   private _target: Building;
   public readonly ownerId: string;
   private unitAI: UnitAI;
+  private friendsInLOS = {};
+  private enemiesInLOS = {};
 
-  constructor(scene: ServerScene, position: Vector, radius, ownerId: string, target: Building) {
+  constructor(
+    scene: ServerScene,
+    position: Vector,
+    radius,
+    ownerId: string,
+    target: Building,
+    returnTarget?: Building
+  ) {
     super();
     const { x, y } = position;
     const seed = getSeed();
@@ -18,14 +27,36 @@ class Unit extends Entity {
     this.body = Bodies.circle(x, y, radius, { isSensor: true, frictionAir: 0 });
     // @ts-ignore
     this.body.ownerEntity = this;
+    let timer;
     // @ts-ignore
     this.body.onCollision = (collidedObject) => {
-      console.log(`COLLISION: UNIT ${this.id} AND BUILDING ${collidedObject.ownerEntity.ownerId}`);
+      const collidingEntity = collidedObject.ownerEntity as Entity;
       if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
-        //scene.removeUnit(this.id);
-        //this.unitAI = new orbitAI(100, this._target.body.position);
+        this.enemiesInLOS[collidingEntity.id] = collidingEntity;
+        collidingEntity.addDestructionListener(() => {
+          clearInterval(timer);
+          this.unitAI = new GotoAI(this, returnTarget.body.position, () => {
+            this.unitAI = new OrbitAI(this.body.position, 60, returnTarget.body.position);
+          });
+        });
+        timer = setInterval(() => {
+          //console.log(targetBuilding.id);
+          collidingEntity.takeDamage(50);
+          scene.updateEntity(collidingEntity);
+        }, 1000);
       } else {
-        //Body.setVelocity(this.body, { x: 0, y: 0 });
+        this.friendsInLOS[collidingEntity.id] = collidingEntity;
+      }
+    };
+    // @ts-ignore
+    this.body.onCollisionEnd = (collidedObject) => {
+      //clearInterval(timer);
+      const targetEntity = collidedObject.ownerEntity as Entity;
+
+      if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
+        delete this.enemiesInLOS[targetEntity.id];
+      } else {
+        delete this.friendsInLOS[targetEntity.id];
       }
     };
     this._target = target;
@@ -38,12 +69,20 @@ class Unit extends Entity {
       //console.log("setting body's velocity...");
       //Body.setVelocity(this.body, Vector.div(distance, 100));
       this.unitAI = new GotoAI(this, targetPosition, () => {
-        this.unitAI = new OrbitAI(this.body.position, 100, this._target.body.position);
+        this.unitAI = new OrbitAI(this.body.position, 60, this._target.body.position);
       });
     } else {
       //Body.setVelocity(this.body, { x: 10, y: 20 });
     }
+
+    this.onDestroyedEvent = () => {
+      // @ts-ignore
+      this.body.onCollisionEnd = (collidedObject) => {};
+      scene.removeUnit(this.id);
+    };
   }
+
+  public onDestroyedEvent;
 
   public updatePosition() {
     this.unitAI.update(this);
@@ -55,12 +94,11 @@ interface UnitAI {
 }
 
 class GotoAI implements UnitAI {
-  private onArrivalEvent(): void {}
+  private onArrivalEvent = () => {};
   private targetPosition: { x; y };
   private self: Unit;
 
   constructor(self: Unit, targetPosition: { x; y }, onArrivalEvent?: () => void) {
-    this.onArrivalEvent = onArrivalEvent;
     this.self = self;
     this.targetPosition = targetPosition;
     //const distance = Vector.sub(targetPosition, self.body.position);
@@ -68,13 +106,14 @@ class GotoAI implements UnitAI {
     //const radius = Vector.mult(perpendicular, 100);
     //this.targetPosition = Vector.add(radius, targetPosition);
     //Body.setVelocity(this.self.body, Vector.div(distance, 100));
+    if (onArrivalEvent) this.onArrivalEvent = onArrivalEvent;
   }
 
   public update() {
     const currentPosition = this.self.body.position;
     const distance = Vector.sub(this.targetPosition, currentPosition);
     Body.setVelocity(this.self.body, Vector.mult(Vector.normalise(distance), 2));
-    if (Vector.magnitude(distance) <= 100) {
+    if (Vector.magnitude(distance) <= 60) {
       this.onArrivalEvent();
     }
   }
@@ -98,7 +137,7 @@ class OrbitAI implements UnitAI {
     const x = this.radius * Math.cos(this.angle) + this.origin.x;
     const y = this.radius * Math.sin(this.angle) + this.origin.y;
     Body.setPosition(unit.body, { x, y });
-    this.angle += 0.01;
+    this.angle += 0.03;
   }
 }
 
