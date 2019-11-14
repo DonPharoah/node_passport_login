@@ -102,10 +102,7 @@ class ServerScene {
       });
 
       socket.on(Events.GET_ALL_USER_NAMES, () => {
-        socket.emit(
-          Events.GET_ALL_USER_NAMES,
-          Object.values(this.players).map((player) => player.name)
-        );
+        socket.emit(Events.GET_ALL_USER_NAMES, Object.values(this.players).map((player) => player.name));
       });
 
       socket.on(Events.PLAYER_DISCONNECTED, () => {

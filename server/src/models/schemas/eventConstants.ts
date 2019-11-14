@@ -18,5 +18,7 @@ export const enum Events {
   PLAYER_CONSTRUCT_BUILDING = 'playerConstructBuilding',
   PLAYER_ISSUE_COMMAND = 'playerIssueCommand',
   LOAD_ALL_BUILDINGS = 'loadBuildings',
-  LOAD_ALL_UNITS = 'loadUnits'
+  LOAD_ALL_UNITS = 'loadUnits',
+  BUILDING_DAMAGED = 'buildingDamaged',
+  BUILDING_HEALED = 'buildingHealed'
 }
