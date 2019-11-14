@@ -213,6 +213,12 @@ class ClientScene extends Phaser.Scene {
       let latency = Date.now() - this.pingStartTime;
       this.guiController.showOverlayMessage(`latency: ${latency}ms`);
     });
+
+    this.socket.on(Events.UPDATE_ENTITY, (uuid, health) => {
+      this.findEntityById(uuid, (entity) => {
+        (entity as Damagable).setHealth(health);
+      });
+    });
   }
 
   public mouseOverEvent(objectMousedOver: Entity) {
@@ -258,6 +264,32 @@ class ClientScene extends Phaser.Scene {
     if (!foundUnit) throw new Error(`Unit ${id} could not be found`);
     return foundUnit as Unit;
   }
+
+  public findEntityById(uuid: string, runOnEntity: (entity: Entity) => void) {
+    let buildingArray = this.buildings.getChildren();
+    let foundBuilding = buildingArray.find((currentBuilding: Building) => {
+      return currentBuilding.id === uuid;
+    });
+    if (foundBuilding) {
+      runOnEntity(foundBuilding as Entity);
+    }
+    let unitArray = this.units.getChildren();
+    let foundUnit = unitArray.find((currentUnit: Unit) => {
+      return currentUnit.id === uuid;
+    });
+    if (foundUnit) {
+      runOnEntity(foundUnit as Entity);
+    }
+  }
+
+  // public findEntityById(uuid: string) {
+  //   let entityArray = this.children.getChildren();
+  //   let foundEntity = entityArray.find((currentEntity: Entity) => {
+  //     return currentEntity.id === uuid;
+  //   });
+  //   if (!foundEntity) throw new Error(`Entity ${uuid} could not be found`);
+  //   return foundEntity as Entity;
+  // }
 
   public addNewBuildingToScene(options: { position: { x; y }; id: string; ownerId: string }) {
     const { position, id, ownerId } = options;
