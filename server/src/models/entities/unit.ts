@@ -31,7 +31,7 @@ class Unit extends Entity {
     // @ts-ignore
     this.body.onCollision = (collidedObject) => {
       const collidingEntity = collidedObject.ownerEntity as Entity;
-      if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
+      if (collidedObject.ownerEntity.ownerId !== this.ownerId && collidedObject.ownerEntity.isDamagable()) {
         this.enemiesInLOS[collidingEntity.id] = collidingEntity;
         collidingEntity.addDestructionListener(() => {
           clearInterval(timer);
@@ -42,7 +42,7 @@ class Unit extends Entity {
         timer = setInterval(() => {
           //console.log(targetBuilding.id);
           collidingEntity.takeDamage(50);
-          scene.updateEntity(collidingEntity);
+          scene.updateEntityHealth(collidingEntity, this);
         }, 1000);
       } else {
         this.friendsInLOS[collidingEntity.id] = collidingEntity;
@@ -87,7 +87,10 @@ class Unit extends Entity {
   public updatePosition() {
     this.unitAI.update(this);
   }
-}
+  public isDamagable(): boolean {
+    return true;
+  }
+} // end of Unit class
 
 interface UnitAI {
   update(entity: Entity): void;

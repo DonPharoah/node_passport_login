@@ -28,6 +28,6 @@ abstract class Entity {
   }
 
   public abstract onDestroyedEvent();
+  public abstract isDamagable();
 }
-
 export default Entity;

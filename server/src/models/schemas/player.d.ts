@@ -1,6 +1,7 @@
 interface PlayerSchema {
   id: string;
   name: string;
+  color: string;
 }
 
 interface Players {

@@ -1,10 +1,10 @@
 import * as Phaser from 'phaser';
 import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
 // import UIPlugin from '../rex-ui/plugins/dist/rexuiplugin.min.js';
-import { initDebugGui_sceneSelect } from './utils/debugGui';
+import { initDebugGui_sceneCommands } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
-import { initGuiController } from './controllers/guiController';
+// import { initGuiController } from './controllers/guiController';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
@@ -12,6 +12,7 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   width: window.innerWidth,
   height: window.innerHeight,
   type: Phaser.AUTO,
+  disableContextMenu: true,
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -41,12 +42,16 @@ window.onload = () => {
   let clientScene = game.scene.getScene('mainScene') as ClientScene;
   let canvas = document.querySelector('canvas');
 
-  initGuiController(game);
   clientScene.handleSockets();
-  initDebugGui_sceneSelect(game);
-  canvas.oncontextmenu = (e) => {
-    e.preventDefault();
-  };
+  try {
+    initDebugGui_sceneCommands(clientScene);
+  } catch (e) {
+    console.log('Debug folder already exists');
+  }
+
+  // canvas.oncontextmenu = (e) => {
+  //   e.preventDefault();
+  // };
 };
 
 /*

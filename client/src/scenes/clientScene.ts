@@ -1,9 +1,9 @@
 import { Building } from '../models/entities/building';
 import { Unit } from '../models/entities/unit';
-import GuiController, { getGuiController } from '../controllers/guiController';
 import { getMinimapCamera, initMinimapCamera } from '../controllers/minimapController';
 import { initDebugGui_sceneCommands } from '../utils/debugGui';
 import { Events } from '../models/schemas/eventConstants';
+import { Utils } from '../utils/utils';
 import * as io from 'socket.io-client';
 import Entity from '../models/entities/entity';
 
@@ -18,7 +18,8 @@ class ClientScene extends Phaser.Scene {
 
   public mainCamera: Phaser.Cameras.Scene2D.Camera;
   public minimapCamera: Phaser.Cameras.Scene2D.Camera;
-  public guiController: GuiController;
+  public viewportRect: Phaser.GameObjects.Rectangle;
+  public gameBoundaryRect: Phaser.GameObjects.Rectangle;
   public howie: Phaser.Sound.BaseSound;
   public wilhelm: Phaser.Sound.BaseSound;
   public starfield: Phaser.GameObjects.TileSprite;
@@ -27,6 +28,8 @@ class ClientScene extends Phaser.Scene {
   public mouseOvers: Entity[] = [];
   public currentSelected: Entity[] = [];
   public mouseOversIndex: number = 0;
+  public playerColor: string;
+  public playersList: any;
   public keyW: Phaser.Input.Keyboard.Key;
   public keyA: Phaser.Input.Keyboard.Key;
   public keyS: Phaser.Input.Keyboard.Key;
@@ -41,24 +44,43 @@ class ClientScene extends Phaser.Scene {
   public preload() {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
-    // this.load.scenePlugin({
-    //   key: 'rexuiplugin',
-    //   url:
-    //     'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexuiplugin.min.js',
-    //   sceneKey: 'rexUI'
-    // });
-    // this.load.image('starfield', '../../assets/images/starfield2.png');
   }
 
   public create() {
-    this.guiController = getGuiController();
-    this.input.setTopOnly(false);
-    initMinimapCamera(this);
-    this.mainCamera = this.cameras.main;
-    this.minimapCamera = getMinimapCamera();
-    // this.starfield = this.add.tileSprite(500, 500, 1000, 1000, 'starfield');
+    this.initGameVariables();
+    this.initInputHandlers();
+    this.setVariableObservers();
+  }
+
+  public update() {
+    this.handleKeyboardKeys();
+  }
+
+  public setRegistryData() {
+    this.registry.set('gameBoundary', {
+      width: 4000,
+      height: 4000
+    });
+  }
+
+  public initGameVariables() {
+    this.setRegistryData();
     this.initKeyboardKeys();
-    // this.handleSockets();
+    const { width, height } = this.registry.get('gameBoundary');
+    this.mainCamera = this.cameras.main;
+    // this.mainCamera.setOrigin(0, 0);
+    this.mainCamera.setBounds(0, 0, 4000, 4000);
+    this.gameBoundaryRect = this.add.rectangle(2000, 2000, width, height).setStrokeStyle(4, 0xff0000);
+    this.viewportRect = this.add
+      .rectangle(
+        this.mainCamera.displayHeight / 2,
+        this.mainCamera.displayHeight / 2,
+        this.mainCamera.displayWidth,
+        this.mainCamera.displayHeight
+      )
+      .setStrokeStyle(10, 0x0033ff);
+    this.minimapCamera = initMinimapCamera(this);
+    // this.guiController = getGuiController();
     this.howie = this.sound.add('howie', { volume: 0 });
     this.wilhelm = this.sound.add('wilhelm', { volume: 0 });
     this.buildings = this.add.group([], {
@@ -69,58 +91,59 @@ class ClientScene extends Phaser.Scene {
       classType: Phaser.GameObjects.Sprite,
       name: 'units'
     });
-    try {
-      initDebugGui_sceneCommands(this);
-    } catch (e) {
-      console.log('Debug folder already exists');
-    }
+    this.mainCamera.ignore(this.viewportRect);
+    // this.minimapCamera.ignore(this.units);
+    // this.starfield = this.add.tileSprite(500, 500, 1000, 1000, 'starfield');
+  }
 
+  public setVariableObservers() {
     // MAIN VARIABLE OBSERVER
-    // this.registry.events.on('changedata', (parent, key, value) => {
-    //   if (key === 'YOUR_VARIABLE') {
-    // do something with your variable, as long as you already set it in the registry
-    //   }
-    // });
-
-    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
-      if (deltaY > 0) {
-        this.mainCamera.setZoom(this.mainCamera.zoom / 1.2);
-        this.minimapCamera.setZoom(this.minimapCamera.zoom / 1.2);
-      } else {
-        this.mainCamera.setZoom(this.mainCamera.zoom * 1.2);
-        this.minimapCamera.setZoom(this.minimapCamera.zoom * 1.2);
+    this.registry.events.on('changedata', (parent, key, value) => {
+      if (key === 'YOUR_VARIABLE') {
+        // do something with your variable, as long as you already set it in the registry
       }
     });
+  }
 
+  public initKeyboardKeys() {
+    this.keyW = this.input.keyboard.addKey('W');
+    this.keyA = this.input.keyboard.addKey('A');
+    this.keyS = this.input.keyboard.addKey('S');
+    this.keyD = this.input.keyboard.addKey('D');
+    this.keyESC = this.input.keyboard.addKey('ESC');
+    this.keySHIFT = this.input.keyboard.addKey('SHIFT');
+  }
+
+  public initInputHandlers() {
+    this.input.setTopOnly(false);
+    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+      let newZoom = deltaY > 0 ? this.mainCamera.zoom / 1.2 : this.mainCamera.zoom * 1.2;
+      if (newZoom >= 0.3 && newZoom <= 1.45) {
+        this.mainCamera.setZoom(newZoom);
+        this.updateViewportRect();
+        // this.updateViewportRectOnScroll();
+      }
+    });
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // prevent being able to click if over Minimap
       if (this.cameras.getCamerasBelowPointer(pointer).includes(this.minimapCamera) == false) {
-        this.clickHandler(pointer);
+        this.leftClickHandler(pointer);
+        this.rightClickHandler(pointer);
+      } else {
+        this.minimapClickHandler(pointer);
+      }
+    });
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (this.cameras.getCamerasBelowPointer(pointer).includes(this.minimapCamera)) {
+        this.minimapClickHandler(pointer);
       }
     });
   }
 
-  public update() {
-    this.handleKeyboardKeys();
-  }
-  public clickHandler(pointer: Phaser.Input.Pointer) {
-    let worldX = pointer.worldX;
-    let worldY = pointer.worldY;
-    // right click
-    if (pointer.rightButtonDown()) {
-      if (this.mouseOvers.length > 0) {
-        console.log(`right mouse button clicked at ${worldX}, ${worldY}, targetId ${this.mouseOvers[0].id}`);
-      }
-      if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
-        this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
-          x: worldX,
-          y: worldY,
-          selectedId: this.currentSelected[0].id,
-          targetId: this.mouseOvers[0].id
-        });
-      }
-      // left click
-    } else {
+  public leftClickHandler(pointer: Phaser.Input.Pointer) {
+    if (pointer.primaryDown) {
+      let worldX = pointer.worldX;
+      let worldY = pointer.worldY;
       const i = this.mouseOversIndex;
       //mouse is over objects
       if (this.mouseOvers.length > 0) {
@@ -140,31 +163,72 @@ class ClientScene extends Phaser.Scene {
     }
   }
 
+  public rightClickHandler(pointer: Phaser.Input.Pointer) {
+    if (pointer.rightButtonDown()) {
+      let worldX = pointer.worldX;
+      let worldY = pointer.worldY;
+      if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
+        this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
+          x: worldX,
+          y: worldY,
+          selectedId: this.currentSelected[0].id,
+          targetId: this.mouseOvers[0].id
+        });
+      }
+    }
+  }
+
+  public minimapClickHandler(pointer: Phaser.Input.Pointer) {
+    if (pointer.primaryDown) {
+      // mainCamera's x and y coordinates are at top left, so must offset by half its size
+      let x = this.minimapCamera.getWorldPoint(pointer.x, pointer.y).x;
+      let y = this.minimapCamera.getWorldPoint(pointer.x, pointer.y).y;
+      // this.mainCamera.setScroll(x, y);
+      this.mainCamera.centerOn(x, y);
+      this.updateViewportRect();
+    }
+  }
+
   public handleSockets() {
+    let uiScene = Utils.uiScene(this.game);
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
 
-    this.socket.on(Events.CONNECTION, (player: string) => {
-      this.guiController.showOverlayMessage(`Player: ${player} connected.`);
+    this.socket.on(Events.PLAYER_INIT, (playersList) => {
+      // code to run when server processes that the player has connected
+      this.playersList = playersList;
+      this.playerColor = playersList[this.socket.id].color;
     });
-    this.socket.on(Events.DISCONNECT, (player: string) => {
-      this.guiController.showOverlayMessage(`Player: ${player} disconnected.`);
+    this.socket.on(Events.CONNECTION, (player) => {
+      console.log('YOU CONNECTED');
+      uiScene.showOverlayMessage(`Player: ${player} connected.`);
+      this.playersList[player.id] = player;
+    });
+    this.socket.on(Events.PLAYER_DISCONNECTED, (player) => {
+      uiScene.showOverlayMessage(`Player: ${player.name} disconnected.`);
+      delete this.playersList[player.id];
+    });
+    this.socket.on(Events.UPDATE_PLAYERS_LIST, (options) => {
+      console.log('running update_players_list');
+      const { playersList } = options;
+      this.playersList = playersList;
+      this.updateEntityData(options);
     });
     this.socket.on(Events.ERROR_STATUS, (errorMessage: string) => {
-      this.guiController.showOverlayError(errorMessage);
+      uiScene.showOverlayError(errorMessage);
     });
     this.socket.on(Events.GET_ALL_USER_NAMES, (userNames: string[]) => {
       console.log(userNames);
     });
     this.socket.on(Events.CHANGE_NAME_OK, (newName: string) => {
       this.data.set('userName', newName);
-      this.guiController.showOverlayMessage(`Server allowed name change to: ${newName}`);
+      uiScene.showOverlayMessage(`Server allowed name change to: ${newName}`);
     });
     this.socket.on(Events.SERVER_STATUS_UPDATE, (unitPositions: any[]) => {
       unitPositions.forEach((current) => {
         const { position, id } = current;
         try {
-          this.findUnitById(id).setPosition(position);
+          Utils.findUnitById(this, id).setPosition(position);
         } catch (e) {
           console.log(e);
         }
@@ -172,67 +236,70 @@ class ClientScene extends Phaser.Scene {
     });
     this.socket.on(Events.NEW_UNIT_ADDED, (newUnit) => {
       console.log(newUnit);
-      this.addNewUnitToScene(newUnit);
+      Utils.addNewUnitToScene(this, newUnit);
       this.howie.play();
     });
     this.socket.on(Events.NEW_BUILDING_ADDED, (newBuilding) => {
       console.log(newBuilding);
-      this.guiController.showOverlayMessage('New building added!');
-      this.addNewBuildingToScene(newBuilding);
+      uiScene.showOverlayMessage('New building added!');
+      Utils.addNewBuildingToScene(this, newBuilding);
     });
     this.socket.on(Events.BUILDING_REMOVED, (removeBuildingId) => {
-      this.removeBuilding(removeBuildingId);
-      this.guiController.showOverlayMessage('Building removed.');
+      Utils.removeBuildingFromScene(this, removeBuildingId);
+      uiScene.showOverlayMessage('Building removed.');
     });
     this.socket.on(Events.UNIT_REMOVED, (removeUnitId) => {
-      this.removeUnit(removeUnitId);
+      Utils.removeUnitFromScene(this, removeUnitId);
       this.wilhelm.play();
     });
-
     this.socket.on(Events.LOAD_ALL_BUILDINGS, (buildings) => {
       buildings.forEach((payload) => {
-        this.addNewBuildingToScene(payload);
+        Utils.addNewBuildingToScene(this, payload);
       });
     });
     this.socket.on(Events.LOAD_ALL_UNITS, (units) => {
       units.forEach((payload) => {
-        this.addNewUnitToScene(payload);
+        Utils.addNewUnitToScene(this, payload);
       });
     });
-
     this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
       console.log(newEntity);
       //this.addNewBuildingToScene(newEntity);
     });
-
     this.socket.on(Events.DEBUG_MESSAGE, (message) => {
-      this.guiController.appendToTextArea(message);
+      uiScene.appendToTextArea(message);
     });
-
     this.pingSocket.on(Events.PONG_EVENT, () => {
       let latency = Date.now() - this.pingStartTime;
-      this.guiController.showOverlayMessage(`latency: ${latency}ms`);
+      uiScene.showOverlayMessage(`latency: ${latency}ms`);
     });
-
-    this.socket.on(Events.UPDATE_ENTITY, (uuid, health) => {
-      this.findEntityById(uuid, (entity) => {
-        (entity as Damagable).setHealth(health);
+    this.socket.on(Events.UPDATE_ENTITY_HEALTH, (uuid, health, callerUuid) => {
+      let damagerEntity: Entity;
+      Utils.findEntityByIdAndRun(this, callerUuid, (entity) => {
+        damagerEntity = entity;
+      });
+      Utils.findEntityByIdAndRun(this, uuid, (entity) => {
+        entity.setHealth(health);
+        this.drawLaser(damagerEntity.getPosition(), entity.getPosition());
       });
     });
   }
 
   public mouseOverEvent(objectMousedOver: Entity) {
-    this.guiController.clearText();
+    let uiScene = Utils.uiScene(this.game);
+    uiScene.clearText();
     this.mouseOvers.push(objectMousedOver);
     this.mouseOversIndex = 0;
-    // this.guiController.showMessage(`Selected: ${this.mouseOvers[0].id}`);
+    // uiScene.showMessage(`Selected: ${this.mouseOvers[0].id}`);
     this.mouseOvers.forEach((current) => {
-      this.guiController.appendToTextArea(`Selected: ${current.DESCRIPTION} ${current.id}`);
+      uiScene.appendToTextArea(`Selected: ${current.DESCRIPTION} ${current.id}`);
+      uiScene.appendToTextArea(`Owner: ${current.ownerId}`);
     });
   }
 
   public mouseOffEvent(objectMousedOff: Entity) {
-    this.guiController.clearText();
+    let uiScene = Utils.uiScene(this.game);
+    uiScene.clearText();
     const i = this.mouseOvers.indexOf(objectMousedOff);
     if (i > -1) {
       this.mouseOvers.splice(i, 1);
@@ -241,81 +308,31 @@ class ClientScene extends Phaser.Scene {
     this.mouseOversIndex = 0;
     if (this.mouseOvers.length > 0) {
       this.mouseOvers.forEach((current) => {
-        this.guiController.appendToTextArea(current.id);
+        uiScene.appendToTextArea(current.id);
       });
     }
-    //this.debugText.setText(`Selected: ${this.mouseOvers.length}`);
   }
 
-  public findBuildingById(id: string): Building {
-    let buildingArray = this.buildings.getChildren();
-    let foundBuilding = buildingArray.find((currentBuilding: Building) => {
-      return currentBuilding.id === id;
-    });
-    if (!foundBuilding) throw new Error(`Building ${id} could not be found`);
-    return foundBuilding as Building;
-  }
-
-  public findUnitById(id: string): Unit {
-    let unitArray = this.units.getChildren();
-    let foundUnit = unitArray.find((currentUnit: Unit) => {
-      return currentUnit.id === id;
-    });
-    if (!foundUnit) throw new Error(`Unit ${id} could not be found`);
-    return foundUnit as Unit;
-  }
-
-  public findEntityById(uuid: string, runOnEntity: (entity: Entity) => void) {
-    let buildingArray = this.buildings.getChildren();
-    let foundBuilding = buildingArray.find((currentBuilding: Building) => {
-      return currentBuilding.id === uuid;
-    });
-    if (foundBuilding) {
-      runOnEntity(foundBuilding as Entity);
+  public updateEntityData(options) {
+    const { newOwnerId, oldOwnerId, playersList, joinOrLeave } = options;
+    if (joinOrLeave) {
+      // NEW PLAYER JOINED
+    } else {
+      // PLAYER LEFT
+      Utils.getBuildingsOfOwner(this, oldOwnerId, (buildings) => {
+        buildings.map((ownerBuildings: Building) => {
+          //ownerBuildings.color = color; // TODO Make method to change entity owner
+          ownerBuildings.ownerId = newOwnerId;
+          ownerBuildings.rectangle.setStrokeStyle(3, parseInt(playersList[newOwnerId].color, 16));
+        });
+      });
+      // this.getUnitsOfOwner(oldOwnerId, (units) => {
+      //   units.map((ownerUnits) => {
+      //     // ownerUnits.color = color;
+      //     ownerUnits.ownerId = newOwnerId;
+      //   });
+      // });
     }
-    let unitArray = this.units.getChildren();
-    let foundUnit = unitArray.find((currentUnit: Unit) => {
-      return currentUnit.id === uuid;
-    });
-    if (foundUnit) {
-      runOnEntity(foundUnit as Entity);
-    }
-  }
-
-  // public findEntityById(uuid: string) {
-  //   let entityArray = this.children.getChildren();
-  //   let foundEntity = entityArray.find((currentEntity: Entity) => {
-  //     return currentEntity.id === uuid;
-  //   });
-  //   if (!foundEntity) throw new Error(`Entity ${uuid} could not be found`);
-  //   return foundEntity as Entity;
-  // }
-
-  public addNewBuildingToScene(options: { position: { x; y }; id: string; ownerId: string }) {
-    const { position, id, ownerId } = options;
-    const newBuilding = new Building(this, position, id, ownerId, 1000);
-    this.add.existing(newBuilding);
-  }
-
-  public addNewUnitToScene(options: { position: { x; y }; id: string; ownerId: string; targetId?: string }) {
-    const { position, id, ownerId } = options;
-    const newUnit = new Unit(this, position, id, ownerId, 500);
-    this.add.existing(newUnit); //not showing
-  }
-
-  public removeBuilding(removeBuildingId) {
-    const deleteBuilding = this.findBuildingById(removeBuildingId);
-    deleteBuilding.destroy();
-    deleteBuilding.remove();
-    this.guiController.showOverlayError('Building removed');
-  }
-  public removeUnit(removeUnitId) {
-    const deleteUnit = this.findUnitById(removeUnitId);
-    deleteUnit.destroy();
-    deleteUnit.remove();
-    this.guiController.showOverlayMessage('Unit removed.');
-    console.log('new state of unit group:');
-    console.log(this.units.getChildren());
   }
 
   public startPingServer() {
@@ -329,13 +346,27 @@ class ClientScene extends Phaser.Scene {
     clearInterval(this.pingInterval);
   }
 
-  public initKeyboardKeys() {
-    this.keyW = this.input.keyboard.addKey('W');
-    this.keyA = this.input.keyboard.addKey('A');
-    this.keyS = this.input.keyboard.addKey('S');
-    this.keyD = this.input.keyboard.addKey('D');
-    this.keyESC = this.input.keyboard.addKey('ESC');
-    this.keySHIFT = this.input.keyboard.addKey('SHIFT');
+  public drawLaser(positionStart: { x; y }, positionEnd: { x; y }) {
+    const laserbeam: Phaser.GameObjects.Line = this.add.line();
+    laserbeam
+      .setOrigin(0, 0)
+      .setTo(positionStart.x, positionStart.y, positionEnd.x, positionEnd.y)
+      //.setTo(positionStart.x, positionStart.y, positionEnd.x, positionEnd.y)
+      .setStrokeStyle(3, 0x00dd00, 1);
+
+    this.tweens.add({
+      targets: laserbeam,
+      alpha: 0,
+      duration: 1000,
+      ease: 'Quart'
+    });
+  }
+
+  public updateViewportRect() {
+    this.sys.render(this.game.renderer);
+    let worldView = this.mainCamera.worldView;
+    this.viewportRect.setDisplaySize(this.mainCamera.displayWidth, this.mainCamera.displayHeight);
+    this.viewportRect.setPosition(worldView.centerX, worldView.centerY); // working version
   }
 
   public handleKeyboardKeys() {
@@ -343,19 +374,23 @@ class ClientScene extends Phaser.Scene {
     let panFactor = shiftDown ? 50 : 20;
     if (this.keyW.isDown) {
       this.cameras.main.scrollY -= panFactor;
-      this.minimapCamera.scrollY -= panFactor;
+      this.updateViewportRect();
+      // this.minimapCamera.scrollY -= panFactor;
     }
     if (this.keyA.isDown) {
       this.cameras.main.scrollX -= panFactor;
-      this.minimapCamera.scrollX -= panFactor;
+      this.updateViewportRect();
+      // this.minimapCamera.scrollX -= panFactor;
     }
     if (this.keyS.isDown) {
       this.cameras.main.scrollY += panFactor;
-      this.minimapCamera.scrollY += panFactor;
+      this.updateViewportRect();
+      // this.minimapCamera.scrollY += panFactor;
     }
     if (this.keyD.isDown) {
       this.cameras.main.scrollX += panFactor;
-      this.minimapCamera.scrollX += panFactor;
+      this.updateViewportRect();
+      // this.minimapCamera.scrollX += panFactor;
     }
     if (this.keyESC.isDown) {
       this.currentSelected.forEach((current) => current.deselectedEvent());

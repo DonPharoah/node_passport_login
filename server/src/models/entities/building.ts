@@ -32,7 +32,9 @@ class Building extends Entity {
   }
 
   public onDestroyedEvent;
-
+  public isDamagable(): boolean {
+    return true;
+  }
   //public onCollision(entity: Unit) {}
 }
 export default Building;

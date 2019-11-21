@@ -1,11 +1,17 @@
 import ClientScene from '../../scenes/clientScene';
+import { GameObjects } from 'phaser';
 
 abstract class Entity extends Phaser.GameObjects.GameObject implements Selectable {
-  public readonly ownerId: string;
+  public ownerId: string;
   public readonly id: string;
   abstract DESCRIPTION: string = 'Entity';
   abstract selectedEvent();
   abstract deselectedEvent();
+  public abstract _shape: GameObjects.GameObject & {
+    x;
+    y;
+  };
+  abstract getPosition();
 
   constructor(scene: Phaser.Scene, type: string, ownerId: string, id: string) {
     super(scene, type);

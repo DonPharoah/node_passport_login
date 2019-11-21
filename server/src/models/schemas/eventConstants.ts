@@ -1,4 +1,6 @@
 export const enum Events {
+  PLAYER_INIT = 'playerInit',
+  UPDATE_PLAYERS_LIST = 'updatePlayersList',
   NEW_UNIT_ADDED = 'newUnitAdded',
   NEW_BUILDING_ADDED = 'newBuildingAdded',
   BUILDING_REMOVED = 'buildingRemoved',
@@ -19,10 +21,5 @@ export const enum Events {
   PLAYER_ISSUE_COMMAND = 'playerIssueCommand',
   LOAD_ALL_BUILDINGS = 'loadBuildings',
   LOAD_ALL_UNITS = 'loadUnits',
-<<<<<<< HEAD
-  BUILDING_DAMAGED = 'buildingDamaged',
-  BUILDING_HEALED = 'buildingHealed'
-=======
-  UPDATE_ENTITY = 'updateEntity'
->>>>>>> cfa2edee6f463f9bff06f5e60840dffe91cf763a
+  UPDATE_ENTITY_HEALTH = 'updateEntity'
 }

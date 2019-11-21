@@ -1,11 +1,12 @@
 import UIScene from '../uiScene';
 import buildingData from '../../models/schemas/buildings/buildingData';
-
+// import GuiController, { getGuiController } from '../../controllers/guiController';
 type itemElement = { id: number; color: number };
 const COLOR_PRIMARY = 0x4e342e;
 const COLOR_LIGHT = 0x7b5e57;
 const COLOR_DARK = 0x260e04;
 let gridTable;
+// let guiController: GuiController;
 // const Random = Phaser.Math.Between;
 
 // const getItems = (count): itemElement[] => {
@@ -19,10 +20,11 @@ let gridTable;
 //   return data;
 // };
 
-const initGridTable = (scene: UIScene) => {
-  let gameWidth = scene.game.config.width;
+const initGridTable = (uiScene: UIScene) => {
+  // guiController = getGuiController();
+  let gameWidth = uiScene.game.config.width;
   let scrollMode = 1; // 0:vertical, 1:horizontal
-  gridTable = scene.rexUI.add
+  gridTable = uiScene.rexUI.add
     .gridTable({
       // x: scene.game.config.width / 2,
       // y: gameHeight - 300,
@@ -34,7 +36,9 @@ const initGridTable = (scene: UIScene) => {
         bottom: '100%'
       },
       scrollMode: scrollMode,
-      background: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222),
+      background: uiScene.rexUI.add
+        .roundRectangle(0, 0, 20, 10, 0, COLOR_PRIMARY)
+        .setStrokeStyle(3, 0x352222),
       table: {
         cellWidth: 75,
         cellHeight: 60,
@@ -49,12 +53,12 @@ const initGridTable = (scene: UIScene) => {
       //   track: scene.rexUI.add.roundRectangle(0, 0, 20, 10, 10, COLOR_DARK),
       //   thumb: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 13, COLOR_LIGHT)
       // },
-      header: scene.rexUI.add.label({
+      header: uiScene.rexUI.add.label({
         width: 30,
         height: undefined,
         orientation: scrollMode,
-        background: scene.rexUI.add.roundRectangle(0, 0, 20, 20, 0, COLOR_DARK),
-        text: scene.add.text(0, 0, 'Unit Selection', { fontSize: 12 })
+        background: uiScene.rexUI.add.roundRectangle(0, 0, 20, 20, 0, COLOR_DARK),
+        text: uiScene.add.text(0, 0, 'Unit Selection', { fontSize: 12 })
       }),
       footer: undefined,
       space: {
@@ -72,13 +76,13 @@ const initGridTable = (scene: UIScene) => {
           item: BuildingSchema = cell.item,
           index = cell.index;
         if (cellContainer === null) {
-          cellContainer = scene.rexUI.add.label({
+          cellContainer = uiScene.rexUI.add.label({
             width: width,
             height: height,
             orientation: scrollMode,
-            background: scene.rexUI.add.roundRectangle(0, 0, 20, 20, 0).setStrokeStyle(2, COLOR_DARK),
-            icon: scene.rexUI.add.roundRectangle(0, 0, 0, item.size, item.size, 0x0),
-            text: scene.add.text(0, 0, item.name, { fontSize: 12 }),
+            background: uiScene.rexUI.add.roundRectangle(0, 0, 20, 20, 0).setStrokeStyle(2, COLOR_DARK),
+            icon: uiScene.rexUI.add.roundRectangle(0, 0, 0, item.size, item.size, 0x0),
+            // text: scene.add.text(0, 0, item.name, { fontSize: 12 }),
 
             space: {
               icon: 0,
@@ -107,23 +111,30 @@ const initGridTable = (scene: UIScene) => {
     })
     .layout();
 
+  initGridTableHandler(uiScene);
+  return gridTable;
+};
+
+function initGridTableHandler(uiScene: UIScene) {
   gridTable
     .on('cell.over', (cellContainer, cellIndex) => {
       cellContainer
         .getElement('background')
         .setStrokeStyle(2, COLOR_LIGHT)
         .setDepth(1);
+      uiScene.setTitleText(gridTable.items[cellIndex].name);
     })
     .on('cell.out', (cellContainer, cellIndex) => {
       cellContainer
         .getElement('background')
         .setStrokeStyle(2, COLOR_DARK)
         .setDepth(0);
+      uiScene.setTitleText('');
     })
     .on('cell.click', (cellContainer, cellIndex) => {
       console.log("running cell's callback...");
       gridTable.items[cellIndex].handler();
     });
-};
+}
 export const getGridTable = () => gridTable;
 export { initGridTable };

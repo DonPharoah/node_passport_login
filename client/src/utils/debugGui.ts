@@ -1,35 +1,34 @@
 import * as dat from 'dat.gui';
 import ClientScene from '../scenes/clientScene';
 import { Events } from '../models/schemas/eventConstants';
-import { getGuiController } from '../controllers/guiController';
+import { Utils } from '../utils/utils';
 
 let debugGuiFolder;
 let debugFunctionsFolder;
 let optionsInstance;
 const debugGui = new dat.GUI({ name: 'debugGui', width: 350 });
 
-const initDebugGui_sceneSelect = (game) => {
-  let stopAllScenes = () => game.scene.getScenes(true).forEach((currentScene) => currentScene.scene.stop());
-  let options = {
-    startMainScene: function() {
-      stopAllScenes();
-      game.scene.start('mainScene');
-    },
-    startDebugScene: function() {
-      stopAllScenes();
-      game.scene.start('debugScene');
-    }
-  };
-  let sceneSelectFolder = debugGui.addFolder('Scene Selection');
-  sceneSelectFolder.add(options, 'startMainScene');
-  // debugGui.add(options, 'startDebugScene');
-};
+// const initDebugGui_sceneSelect = (game) => {
+//   let stopAllScenes = () => game.scene.getScenes(true).forEach((currentScene) => currentScene.scene.stop());
+//   let options = {
+//     startMainScene: function() {
+//       stopAllScenes();
+//       game.scene.start('mainScene');
+//     },
+//     startDebugScene: function() {
+//       stopAllScenes();
+//       game.scene.start('debugScene');
+//     }
+//   };
+//   let sceneSelectFolder = debugGui.addFolder('Scene Selection');
+//   sceneSelectFolder.add(options, 'startMainScene');
+//   // debugGui.add(options, 'startDebugScene');
+// };
 
 const debugGuiOptions = function(context: ClientScene) {
-  let guiController = getGuiController();
   this.genericInput = 'defaultText';
-  this.sendMessageEvent = () => guiController.showOverlayMessage(this.genericInput);
-  this.sendTestErrorEvent = () => guiController.showOverlayError(this.genericInput);
+  this.sendMessageEvent = () => Utils.uiScene(context.game).showOverlayMessage(this.genericInput);
+  this.sendTestErrorEvent = () => Utils.uiScene(context.game).showOverlayError(this.genericInput);
   this.requestChangeUserName = () => context.socket.emit(Events.CHANGE_NAME, this.genericInput);
   this.setUserName = () => context.registry.set('userName', this.genericInput);
   this.getAllUsers = () => context.socket.emit(Events.GET_ALL_USER_NAMES);
@@ -54,4 +53,4 @@ const initDebugGui_sceneCommands = (sceneContext) => {
   debugFunctionsFolder.add(optionsInstance, 'startPingServer');
   debugFunctionsFolder.add(optionsInstance, 'stopPingServer');
 };
-export { debugGui, initDebugGui_sceneSelect, initDebugGui_sceneCommands };
+export { debugGui, initDebugGui_sceneCommands };
