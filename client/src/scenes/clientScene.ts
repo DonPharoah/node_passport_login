@@ -26,7 +26,7 @@ class ClientScene extends Phaser.Scene {
   public buildings: Phaser.GameObjects.Group;
   public units: Phaser.GameObjects.Group;
   public mouseOvers: Entity[] = [];
-  public currentSelected: Entity[] = [];
+  public currentSelected: { entity: Entity; circle: Phaser.GameObjects.Image }[] = [];
   public mouseOversIndex: number = 0;
   public playerColor: string;
   public playersList: any;
@@ -44,6 +44,7 @@ class ClientScene extends Phaser.Scene {
   public preload() {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
+    this.load.image('selectionCircle', '../../assets/images/SelectionCircle.png');
   }
 
   public create() {
@@ -67,6 +68,7 @@ class ClientScene extends Phaser.Scene {
     this.setRegistryData();
     this.initKeyboardKeys();
     const { width, height } = this.registry.get('gameBoundary');
+
     this.mainCamera = this.cameras.main;
     // this.mainCamera.setOrigin(0, 0);
     this.mainCamera.setBounds(0, 0, 4000, 4000);
@@ -140,6 +142,21 @@ class ClientScene extends Phaser.Scene {
     });
   }
 
+  public addSelectionCircle(position: { x; y }): Phaser.GameObjects.Image {
+    const selectionCircle = this.add
+      .image(position.x, position.y, 'selectionCircle')
+      .setTint(0x0000ff, 0x0000ff, 0x0000ff, 0x0000ff)
+      .setScale(0.5, 0.5)
+      .setDepth(-1);
+    this.tweens.add({
+      targets: selectionCircle,
+      angle: 360,
+      duration: 3000,
+      repeat: -1
+    });
+    return selectionCircle;
+  }
+
   public leftClickHandler(pointer: Phaser.Input.Pointer) {
     if (pointer.primaryDown) {
       let worldX = pointer.worldX;
@@ -147,15 +164,18 @@ class ClientScene extends Phaser.Scene {
       const i = this.mouseOversIndex;
       //mouse is over objects
       if (this.mouseOvers.length > 0) {
-        // something is already selected
-        if (this.currentSelected[0]) {
+        // something is already selected, deselect the previous one
+        if (this.currentSelected.length > 0) {
           let previouslySelected = this.currentSelected[0];
-          previouslySelected.deselectedEvent();
+          previouslySelected.entity.deselectedEvent();
+          previouslySelected.circle.destroy();
         }
         // check to make sure this is your building
         if (this.mouseOvers[i].ownerId === this.socket.id) {
-          this.currentSelected[0] = this.mouseOvers[i].selectedEvent();
-          this.mouseOversIndex = i === length - 1 ? 0 : this.mouseOversIndex + 1;
+          const entity = this.mouseOvers[i].selectedEvent();
+          const circle = this.addSelectionCircle(entity.getPosition());
+          this.currentSelected[0] = { entity, circle };
+          i === length - 1 ? 0 : this.mouseOversIndex + 1;
         }
       } else {
         this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
@@ -171,7 +191,7 @@ class ClientScene extends Phaser.Scene {
         this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
           x: worldX,
           y: worldY,
-          selectedId: this.currentSelected[0].id,
+          selectedId: this.currentSelected[0].entity.id,
           targetId: this.mouseOvers[0].id
         });
       }
@@ -393,7 +413,10 @@ class ClientScene extends Phaser.Scene {
       // this.minimapCamera.scrollX += panFactor;
     }
     if (this.keyESC.isDown) {
-      this.currentSelected.forEach((current) => current.deselectedEvent());
+      this.currentSelected.forEach((current) => {
+        current.entity.deselectedEvent();
+        current.circle.destroy();
+      });
       this.currentSelected = [];
     }
   }

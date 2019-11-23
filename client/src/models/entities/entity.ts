@@ -5,8 +5,8 @@ abstract class Entity extends Phaser.GameObjects.GameObject implements Selectabl
   public ownerId: string;
   public readonly id: string;
   abstract DESCRIPTION: string = 'Entity';
-  abstract selectedEvent();
-  abstract deselectedEvent();
+  abstract selectedEvent(): Entity;
+  abstract deselectedEvent(): Entity;
   public abstract _shape: GameObjects.GameObject & {
     x;
     y;
@@ -18,6 +18,8 @@ abstract class Entity extends Phaser.GameObjects.GameObject implements Selectabl
     this.ownerId = ownerId;
     this.id = id;
   }
+
+  public addDestructionListener(callback: () => {}) {}
 
   public abstract remove();
 }

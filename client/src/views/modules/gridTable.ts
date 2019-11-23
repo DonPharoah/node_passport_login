@@ -1,5 +1,6 @@
 import UIScene from '../uiScene';
 import buildingData from '../../models/schemas/buildings/buildingData';
+import { debug } from 'webpack';
 // import GuiController, { getGuiController } from '../../controllers/guiController';
 type itemElement = { id: number; color: number };
 const COLOR_PRIMARY = 0x4e342e;
