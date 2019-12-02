@@ -11,6 +11,8 @@ class Unit extends Entity {
   private unitAI: UnitAI;
   private friendsInLOS = {};
   private enemiesInLOS = {};
+  private attackTarget: Entity;
+  private attackTimer;
 
   constructor(
     scene: ServerScene,
@@ -27,23 +29,13 @@ class Unit extends Entity {
     this.body = Bodies.circle(x, y, radius, { isSensor: true, frictionAir: 0 });
     // @ts-ignore
     this.body.ownerEntity = this;
-    let timer;
+
     // @ts-ignore
     this.body.onCollision = (collidedObject) => {
       const collidingEntity = collidedObject.ownerEntity as Entity;
       if (collidedObject.ownerEntity.ownerId !== this.ownerId && collidedObject.ownerEntity.isDamagable()) {
         this.enemiesInLOS[collidingEntity.id] = collidingEntity;
-        collidingEntity.addDestructionListener(() => {
-          clearInterval(timer);
-          this.unitAI = new GotoAI(this, returnTarget.body.position, () => {
-            this.unitAI = new OrbitAI(this.body.position, 60, returnTarget.body.position);
-          });
-        });
-        timer = setInterval(() => {
-          //console.log(targetBuilding.id);
-          collidingEntity.takeDamage(50);
-          scene.updateEntityHealth(collidingEntity, this);
-        }, 1000);
+        this.designateAttackTarget(scene, collidingEntity);
       } else {
         this.friendsInLOS[collidingEntity.id] = collidingEntity;
       }
@@ -55,11 +47,22 @@ class Unit extends Entity {
 
       if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
         delete this.enemiesInLOS[targetEntity.id];
+        if (targetEntity == this.attackTarget) {
+          this.attackTarget = null;
+          clearInterval(this.attackTimer);
+          // Attack target has left range
+          if (Object.keys(this.enemiesInLOS).length > 0) {
+            // Look for another target in range. Right now just target next in array, but later look through list and prioritize
+            const nextTargetKey = Object.keys(this.enemiesInLOS)[0];
+            this.designateAttackTarget(scene, this.enemiesInLOS[nextTargetKey]);
+          } else {
+          }
+        }
       } else {
         delete this.friendsInLOS[targetEntity.id];
       }
     };
-    this._target = target;
+    this.designateFollowTarget(scene, target, returnTarget);
 
     this.id = seed.generate();
     if (target) {
@@ -80,6 +83,36 @@ class Unit extends Entity {
       this.body.onCollisionEnd = (collidedObject) => {};
       scene.removeUnit(this.id);
     };
+  }
+
+  private designateFollowTarget(scene, moveTarget, returnTarget) {
+    this._target = moveTarget;
+    // If movement target is destroyed
+    this._target.addDestructionCallback(() => {
+      this.unitAI = new GotoAI(this, returnTarget.body.position, () => {
+        this.unitAI = new OrbitAI(this.body.position, 60, returnTarget.body.position);
+      });
+    });
+  }
+
+  private designateAttackTarget(scene, target) {
+    if (!this.attackTarget) {
+      this.attackTarget = target;
+      this.attackTimer = setInterval(() => {
+        //console.log(targetBuilding.id);
+        this.attackTarget.takeDamage(50);
+        scene.updateEntityHealth(this.attackTarget, this);
+      }, 1000);
+      this.attackTarget.addDestructionCallback(() => {
+        clearInterval(this.attackTimer);
+        // this.attackTarget = null;
+        // if (Object.keys(this.enemiesInLOS).length > 0) {
+        //   // Look for another target in range. Right now just target next in array, but later look through list and prioritize
+        //   const nextTargetKey = Object.keys(this.enemiesInLOS)[0];
+        //   this.designateAttackTarget(scene, this.enemiesInLOS[nextTargetKey]);
+        // }
+      });
+    }
   }
 
   public onDestroyedEvent;

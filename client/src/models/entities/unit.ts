@@ -16,6 +16,7 @@ export class Unit extends Entity implements Damagable {
   public readonly DESCRIPTION = 'Unit';
   private static FILL_COLOR = 0xffffff;
   private clientScene: ClientScene;
+  private _container: Phaser.GameObjects.Container;
 
   constructor(
     scene: ClientScene,
@@ -27,11 +28,13 @@ export class Unit extends Entity implements Damagable {
   ) {
     super(scene, 'unit', ownerId, id);
     this.clientScene = scene;
-    this._shape = scene.add.rectangle(position.x, position.y, 10, 10, Unit.FILL_COLOR);
-    // this.currentHealth = health;
-    // this.healthBarWidth = 35;
-    // this.healthBarHeight = this._shape.width / 7;
-    // this.initHealthBar();
+    this._container = scene.add.container(position.x, position.y);
+    this._shape = scene.add.rectangle(0, 0, 10, 10, Unit.FILL_COLOR);
+    this._container.add(this._shape);
+    this.currentHealth = health;
+    this.healthBarWidth = 35;
+    this.healthBarHeight = this._shape.width / 7;
+    this.initHealthBar();
     scene.units.add(this);
   }
   selectedEvent() {
@@ -41,13 +44,14 @@ export class Unit extends Entity implements Damagable {
     return this;
   }
   public setPosition({ x, y }) {
-    this._shape.setPosition(x, y);
+    this._container.setPosition(x, y);
   }
   get rectangle() {
     return this._shape;
   }
   public initHealthBar() {
     this.healthBar = this.clientScene.add.graphics();
+    this._container.add(this.healthBar);
     this.checkHealthAndRedraw();
   }
   public checkHealthAndRedraw() {
@@ -88,13 +92,13 @@ export class Unit extends Entity implements Damagable {
     this.checkHealthAndRedraw();
   }
   public remove() {
-    // this.healthBar.destroy();
+    this.healthBar.destroy();
     this._shape.destroy();
     this.destroy();
   }
 
   getPosition() {
-    return this._shape.getCenter();
+    return this._container;
   }
 }
 

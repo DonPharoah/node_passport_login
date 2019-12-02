@@ -4,13 +4,22 @@ abstract class Entity {
   public id: string;
   public health: number = 1000;
   public maxHealth: number = 1000;
-  private destructionListener = [];
+  private destructionListeners = [];
 
   //public onCollision = () => {};
   //public onCollisionEnd = () => {};
 
-  public addDestructionListener(onDestroyed: () => void) {
-    this.destructionListener.push(onDestroyed);
+  public addDestructionCallback(onDestroyed: () => void) {
+    this.destructionListeners.push(onDestroyed);
+  }
+
+  public removeDestructionCallback(observer: () => void) {
+    const removeIndex = this.destructionListeners.findIndex((obs) => {
+      return observer === obs;
+    });
+    if (removeIndex !== -1) {
+      this.destructionListeners = this.destructionListeners.slice(removeIndex, 1);
+    }
   }
 
   public takeDamage(damage: number) {
@@ -19,10 +28,10 @@ abstract class Entity {
     } else {
       this.health = -1;
       this.takeDamage = () => {}; //TODO REMOVE
-      this.destructionListener.forEach((callback) => {
+      this.destructionListeners.forEach((callback) => {
         callback();
       });
-      this.destructionListener = [];
+      this.destructionListeners = [];
       this.onDestroyedEvent();
     }
   }
