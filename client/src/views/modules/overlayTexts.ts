@@ -14,19 +14,32 @@ const initOverlayTexts = (uiScene: UIScene) => {
     fontSize: '16px',
     color: 'red'
   });
-  const SELECTED_ENTITY_TITLE: Phaser.GameObjects.Text = uiScene.add.text(20, 600, 'Currently Selected: ', {
-    fontSize: '16px',
-    color: '#0000ff',
-    stroke: '#004489',
-    strokeThickness: '2'
+  // const SELECTED_ENTITY_TITLE: Phaser.GameObjects.Text = uiScene.add.text(20, 600, 'Currently Selected: ', {
+  //   fontSize: '16px',
+  //   color: '#0000ff',
+  //   stroke: '#004489',
+  //   strokeThickness: '2'
+  // });
+  // const selectedEntityText: Phaser.GameObjects.Text = uiScene.add.text(20, 620, '', {
+  //   fontSize: '16px',
+  //   color: '#0000ff',
+  //   stroke: '#004489',
+  //   strokeThickness: '2'
+  // });
+  const tooltipText: Phaser.GameObjects.Text = uiScene.make.text({
+    x: 20,
+    y: 600,
+    text: 'Heres a huge paragraph, words and words and words, more stuff more stuff',
+    style: {
+      fontSize: '14px',
+      fontFamily: 'Arial',
+      color: '#0099ff',
+      stroke: '#004489',
+      align: 'left',
+      wordWrap: { width: 300, useAdvancedWrap: false }
+    }
   });
-  const selectedEntityText: Phaser.GameObjects.Text = uiScene.add.text(20, 620, '', {
-    fontSize: '16px',
-    color: '#0000ff',
-    stroke: '#004489',
-    strokeThickness: '2'
-  });
-  overlayTexts = { titleText, debugText, userNameText, errorText, SELECTED_ENTITY_TITLE, selectedEntityText };
+  overlayTexts = { titleText, debugText, userNameText, errorText, tooltipText };
   return overlayTexts;
 };
 

@@ -39,6 +39,9 @@ import PinchFactory from './pinch/Factory.js';
 import RotateFactory from './rotate/Factory.js';
 import FlipFactory from './flip/Factory.js';
 
+import GetParentSizer from './utils/GetParentSizer.js'
+import GetTopmostSizer from './utils/GetTopmostSizer.js';
+import IsPointerInBounds from '../../plugins/utils/input/IsPointerInBounds.js';
 import {
     Show,
     Hide,
@@ -55,10 +58,13 @@ class UIPlugin extends Phaser.Plugins.ScenePlugin {
 }
 
 var methods = {
+    getParentSizer: GetParentSizer,
+    getTopmostSizer: GetTopmostSizer,
     hide: Hide,
     show: Show,
     isShown: IsShown,
     edit: Edit,
+    isInTouching: IsPointerInBounds
 }
 
 Object.assign(

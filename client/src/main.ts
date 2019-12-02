@@ -4,6 +4,8 @@ import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
 import { initDebugGui_sceneCommands } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
+import TestScene from './views/testScene';
+
 // import { initGuiController } from './controllers/guiController';
 
 const gameConfig: Phaser.Types.Core.GameConfig = {

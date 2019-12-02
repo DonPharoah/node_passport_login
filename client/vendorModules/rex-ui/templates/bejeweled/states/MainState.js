@@ -79,7 +79,7 @@ class State extends FSM {
     }
     next_SELECT1() {
         var nextState;
-        if (this.selectedChess1 !== undefined) {
+        if (this.selectedChess1) {
             nextState = 'SELECT2';
         }
         return nextState;
@@ -90,7 +90,7 @@ class State extends FSM {
     // SELECT2    
     next_SELECT2() {
         var nextState;
-        if ((this.selectedChess2 !== undefined) &&
+        if (this.selectedChess2 &&
             this.board.board.areNeighbors(this.selectedChess1, this.selectedChess2)) {
             nextState = 'SWAP';
         } else {
@@ -141,17 +141,16 @@ class State extends FSM {
     }
 
     // Select chess
-    selectChess(chess) {
-        switch (this.state) {
-            case 'SELECT1':
-                this.selectedChess1 = chess;
-                this.next();
-                break;
-            case 'SELECT2':
-                this.selectedChess2 = chess;
-                this.next();
-                break;
-        }
+    selectChess1(chess) {
+        this.selectedChess1 = chess;
+        this.next();
+        return this;
+    }
+
+    selectChess2(chess) {
+        this.selectedChess2 = chess;
+        this.next();
+        return this;
     }
 }
 

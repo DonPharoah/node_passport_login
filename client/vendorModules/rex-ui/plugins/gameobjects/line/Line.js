@@ -7,8 +7,8 @@ class Line extends RenderTexture {
     constructor(scene, config) {
         super(scene);
         this.redraw = false;
-        this._tileSprite = undefined;
-        this._image = undefined;
+        this._tileSprite = undefined; // Reserved for drawing image
+        this._image = undefined; // Reserved for drawing image
 
         var lineStart = GetValue(config, 'start', undefined);
         if (typeof (lineStart) === 'string') {
@@ -42,18 +42,6 @@ class Line extends RenderTexture {
             this.setLineBodyExtendMode(GetValue(lineBody, 'extendMode', 1));
             this.setLineBodyWidth(GetValue(lineBody, 'width', undefined));
         }
-    }
-
-    preDestroy() {
-        if (this._image) {
-            this._image.destroy();
-            this._image = undefined;
-        }
-        if (this._tileSprite) {
-            this._tileSprite.destroy();
-            this._tileSprite = undefined;
-        }
-        super.preDestroy();
     }
 
     get x0() {

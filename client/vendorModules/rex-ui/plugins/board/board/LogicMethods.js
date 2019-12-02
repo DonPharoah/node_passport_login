@@ -7,13 +7,17 @@ import SetBoardHeight from './boarddata/SetBoardHeight.js';
 import TileXYToWorldX from './worldposition/TileXYToWorldX.js';
 import TileXYToWorldY from './worldposition/TileXYToWorldY.js';
 import TileXYToWorldXY from './worldposition/TileXYToWorldXY.js';
+import TileXYArrayToWorldXYArray from './worldposition/TileXYArrayToWorldXYArray.js';
 import WorldXYToTileX from './worldposition/WorldXYToTileX.js';
 import WorldXYToTileY from './worldposition/WorldXYToTileY.js';
 import WorldXYToTileXY from './worldposition/WorldXYToTileXY.js';
+import WorldXYToChessArray from './worldposition/WorldXYToChessArray.js';
+import WorldXYToChess from './worldposition/WorldXYToChess.js';
 import WorldXYSnapToGrid from './worldposition/WorldXYSnapToGrid.js';
 import AngleBetween from './worldposition/AngleBetween.js';
 import IsAngleInCone from './worldposition/IsAngleInCone.js';
 import AngleToward from './worldposition/AngleToward.js';
+import AngleSnapToDirection from './worldposition/AngleSnapToDirection.js';
 import IsOverlappingPoint from './worldposition/IsOverlappingPoint.js';
 import GridAlign from './worldposition/GridAlign.js';
 
@@ -34,8 +38,7 @@ import GetAllChess from './chess/GetAllChess.js';
 
 import Contains from './tileposition/Contains.js';
 import ForEachTileXY from './tileposition/ForEachTileXY.js';
-import GetWrapTileX from './tileposition/GetWrapTileX.js';
-import GetWrapTileY from './tileposition/GetWrapTileY.js';
+import GetWrapTileXY from './tileposition/GetWrapTileXY.js';
 import TileXYZToChess from './tileposition/TileXYZToChess.js';
 import TileXYToChessArray from './tileposition/TileXYToChessArray.js';
 import TileZToChessArray from './tileposition/TileZToChessArray.js';
@@ -54,7 +57,9 @@ import Fit from './transform/Fit.js';
 import GetEmptyTileXYArray from './empty/GetEmptyTileXYArray.js';
 import GetRandomEmptyTileXY from './empty/GetRandomEmptyTileXY.js';
 
+import GetTileXYAtDirection from './neighbors/GetTileXYAtDirection.js';
 import GetNeighborTileXY from './neighbors/GetNeighborTileXY.js';
+import GetNeighborTileXYAtAngle from './neighbors/GetNeighborTileXYAtAngle.js';
 import GetNeighborChess from './neighbors/GetNeighborChess.js';
 import GetNeighborTileDirection from './neighbors/GetNeighborTileDirection.js';
 import GetNeighborChessDirection from './neighbors/GetNeighborChessDirection.js';
@@ -78,13 +83,17 @@ export default {
     tileXYToWorldX: TileXYToWorldX,
     tileXYToWorldY: TileXYToWorldY,
     tileXYToWorldXY: TileXYToWorldXY,
+    tileXYArrayToWorldXYArray: TileXYArrayToWorldXYArray,
     worldXYToTileX: WorldXYToTileX,
     worldXYToTileY: WorldXYToTileY,
     worldXYToTileXY: WorldXYToTileXY,
+    worldXYToChessArray: WorldXYToChessArray,
+    worldXYToChess: WorldXYToChess,
     worldXYSnapToGrid: WorldXYSnapToGrid,
     angleBetween: AngleBetween,
     isAngleInCone: IsAngleInCone,
     angleToward: AngleToward,
+    angleSnapToDirection: AngleSnapToDirection,
     isOverlappingPoint: IsOverlappingPoint,
     gridAlign: GridAlign,
 
@@ -106,8 +115,7 @@ export default {
 
     contains: Contains,
     forEachTileXY: ForEachTileXY,
-    getWrapTileX: GetWrapTileX,
-    getWrapTileY: GetWrapTileY,
+    getWrapTileXY: GetWrapTileXY,
     tileXYZToChess: TileXYZToChess,
     tileXYToChessArray: TileXYToChessArray,
     tileZToChessArray: TileZToChessArray,
@@ -125,7 +133,9 @@ export default {
     getEmptyTileXYArray: GetEmptyTileXYArray,
     getRandomEmptyTileXY: GetRandomEmptyTileXY,
 
+    getTileXYAtDirection: GetTileXYAtDirection,
     getNeighborTileXY: GetNeighborTileXY,
+    getNeighborTileXYAtAngle: GetNeighborTileXYAtAngle,
     getNeighborChess: GetNeighborChess,
     getNeighborTileDirection: GetNeighborTileDirection,
     getNeighborChessDirection: GetNeighborChessDirection,

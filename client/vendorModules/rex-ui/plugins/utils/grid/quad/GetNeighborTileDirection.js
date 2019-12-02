@@ -1,8 +1,7 @@
 import {
     OrthogonalMap,
-    IsometricMap,
-    StaggeredMap
-} from './DeltaTileXYToNeighbor.js';
+    IsometricMap
+} from './DeltaTileXYToDirection.js';
 
 var GetNeighborTileDirection = function (srcTileXY, neighborTileXY) {
     var deltaTileXYToDirMap
@@ -14,7 +13,6 @@ var GetNeighborTileDirection = function (srcTileXY, neighborTileXY) {
             deltaTileXYToDirMap = IsometricMap;
             break;
         case 2: // staggered
-            deltaTileXYToDirMap = StaggeredMap[tileY & 1];
             break;
     }
 

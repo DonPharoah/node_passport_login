@@ -45,12 +45,12 @@ export class Building extends Entity implements Damagable {
 
   public selectedEvent() {
     // this._shape.strokeColor = Building.SELECTED_COLOR;
-    Utils.uiScene(this.scene.game).setSelectedEntityText(`${this.DESCRIPTION}, ID: ${this.id}`);
+    // Utils.uiScene(this.scene.game).setSelectedEntityText(`${this.DESCRIPTION}, ID: ${this.id}`);
     return this;
   }
   public deselectedEvent() {
     // this._shape.strokeColor = Building.DEFAULT_COLOR;
-    Utils.uiScene(this.scene.game).setSelectedEntityText('');
+    // Utils.uiScene(this.scene.game).setSelectedEntityText('');
     return this;
   }
 
@@ -104,6 +104,7 @@ export class Building extends Entity implements Damagable {
     this.checkHealthAndRedraw();
   }
   public remove() {
+    this.clientScene.buildingWasRemoved(this);
     this.healthBar.destroy();
     this._shape.destroy();
     this.destroy();

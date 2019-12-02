@@ -1,16 +1,17 @@
-import { initGridTable } from './modules/gridTable';
-import { initTextArea } from './modules/textArea';
+import { initMainSizer } from './modules/mainSizer';
+import { initBuildingPanel } from './modules/buildingPanel';
+import { initCurrentSelectedPanel, showPanel, hidePanel } from './modules/currentSelectedPanel';
 import { initOverlayTexts } from './modules/overlayTexts';
-// import GuiController, { getGuiController, initGuiController } from '../controllers/guiController';
 import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
+import Entity from '../models/entities/entity';
 type rexUi = UIPlugin;
 
 class UIScene extends Phaser.Scene {
   [rexUi: string]: rexUi;
-  private textArea;
-  private gridTable;
+  private mainSizer;
+  private currentSelectedPanel;
+  private buildingPanel;
   private overlayTexts;
-  // private guiController: GuiController;
   constructor() {
     super({ key: 'uiScene', active: true, visible: true });
   }
@@ -22,26 +23,60 @@ class UIScene extends Phaser.Scene {
     //   sceneKey: 'rexUI'
     // });
   }
+
   create() {
     this.registry.set('userName', 'Default User Name');
     this.overlayTexts = initOverlayTexts(this);
-    this.gridTable = initGridTable(this);
-    this.textArea = initTextArea(this);
+    this.mainSizer = initMainSizer(this);
+    this.buildingPanel = initBuildingPanel(this);
+    this.currentSelectedPanel = initCurrentSelectedPanel(this);
+
+    this.mainSizer
+      .add(this.buildingPanel, 0, 'center', 7, true, 'buildingPanel')
+      .add(this.currentSelectedPanel, 0, 'center', 7, true, 'currentSelectedPanel')
+      .layout();
+
     this.registry.events.on('changedata', (parent, key, value) => {
       if (key === 'userName') {
         this.setUsernameText(`Player name: ${value}`);
       }
     });
   }
+
+  public onSelectionAmountChanged(currentSelected: { entity: Entity; circle: Phaser.GameObjects.Image }[]) {
+    if (currentSelected.length == 0) {
+      hidePanel(this);
+      return;
+    } else {
+      showPanel(this);
+      if (currentSelected.length == 1) {
+        // populate panel with currentSelected[0].entity's data
+      } else if (currentSelected.length > 1) {
+        // populate panel with preset "Multiple Selected" data
+      }
+    }
+  }
+  public setTooltipText(newText: string) {}
   public setTextAreaText(newText: string) {
-    this.textArea.setText(newText);
+    this.currentSelectedPanel.getElement('textArea').setText(newText);
   }
+
   public appendToTextArea(newText: string) {
-    this.textArea.appendText(newText + '\n');
+    this.currentSelectedPanel.getElement('textArea').appendText(newText + '\n');
   }
+
   public clearText() {
-    this.textArea.setText('');
+    this.currentSelectedPanel.getElement('textArea').setText('');
   }
+
+  public hideCurrentSelectedPanel() {
+    hidePanel(this);
+  }
+
+  public showCurrentSelectedPanel() {
+    showPanel(this);
+  }
+
   public showOverlayMessage(message = 'Default text') {
     console.log(message);
     this.tweens.killTweensOf(this.overlayTexts.debugText);
@@ -71,6 +106,7 @@ class UIScene extends Phaser.Scene {
   public setTitleText(newName: string) {
     this.overlayTexts.titleText.setText(newName);
   }
+
   public setUsernameText(newName: string) {
     this.overlayTexts.userNameText.setText(newName);
   }

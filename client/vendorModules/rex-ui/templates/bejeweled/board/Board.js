@@ -12,7 +12,8 @@ import GetAllMatch from './match/GetAllMatch.js';
 
 const GetValue = Phaser.Utils.Objects.GetValue;
 class Board {
-    constructor(scene, config) {
+    constructor(parent, config) {
+        var scene = parent.scene;
         this.scene = scene;
         this.board = scene.rexBoard.add.board(GetValue(config, 'board', undefined));
         this.match = scene.rexBoard.add.match(GetValue(config, 'match', undefined));
@@ -85,30 +86,25 @@ class Board {
         return this;
     }
 
-    onPointerDown(callback, scope) {
-        this.board
-            .setInteractive()
-            .on('gameobjectdown', callback, scope);
-        return this;
+    worldXYToChess(worldX, worldY) {
+        return this.board.worldXYToChess(worldX, worldY, this.chessTileZ);
     }
 
-    onPointerMove(callback, scope) {
-        this.board
-            .setInteractive()
-            .on('gameobjectmove', function (pointer, gameObject) {
-                if (!pointer.isDown) {
-                    return;
-                }
-                callback.call(scope, pointer, gameObject);
-            });
-        return this;
+    tileXYToChess(tileX, tileY) {
+        return this.board.tileXYZToChess(tileX, tileY, this.chessTileZ);
     }
 
-    onPointerUp(callback, scope) {
-        this.board
-            .setInteractive()
-            .on('gameobjectup', callback, scope);
-        return this;
+    getNeighborChessAtAngle(chess, angle) {
+        var direction = this.board.angleSnapToDirection(chess, angle);
+        return this.getNeighborChessAtDirection(chess, direction);
+    }
+
+    getNeighborChessAtDirection(chess, direction) {
+        var neighborTileXY = this.board.getNeighborTileXY(chess, direction);
+        var neighborChess = (neighborTileXY) ?
+            this.board.tileXYZToChess(neighborTileXY.x, neighborTileXY.y, this.chessTileZ) :
+            null;
+        return neighborChess;
     }
 }
 

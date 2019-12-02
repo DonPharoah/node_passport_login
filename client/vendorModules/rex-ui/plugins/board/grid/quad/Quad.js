@@ -1,8 +1,8 @@
 import Quad from '../../../utils/grid/quad/Quad.js';
 import SaveOrigin from '../utils/SaveOrigin.js';
 import RestoreOrigin from '../utils/RestoreOrigin.js';
-import GetNeighborTileX from '../../../utils/grid/quad/GetNeighborTileX.js';
-import GetNeighborTileY from '../../../utils/grid/quad/GetNeighborTileY.js';
+import GetTileXYAtDirection from '../../../utils/grid/quad/GetTileXYAtDirection.js';
+import GetNeighborTileXY from '../../../utils/grid/quad/GetNeighborTileXY.js';
 import GetNeighborTileDirection from '../../../utils/grid/quad/GetNeighborTileDirection.js';
 import GetOppositeDirection from '../../../utils/grid/quad/GetOppositeDirection.js';
 import Offset from '../../../utils/grid/quad/Offset.js';
@@ -50,8 +50,8 @@ const HALFDIR8 = [0, 1, 4, 5];
 var methods = {
     saveOrigin: SaveOrigin,
     restoreOrigin: RestoreOrigin,
-    getNeighborTileX: GetNeighborTileX,
-    getNeighborTileY: GetNeighborTileY,
+    getTileXYAtDirection: GetTileXYAtDirection,
+    getNeighborTileXY: GetNeighborTileXY,
     getNeighborTileDirection: GetNeighborTileDirection,
     getOppositeDirection: GetOppositeDirection,
     offset: Offset,

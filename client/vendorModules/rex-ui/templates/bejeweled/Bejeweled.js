@@ -1,6 +1,7 @@
 import BoardPlugin from '../../plugins/board-plugin.js';
 import MainState from './states/MainState.js';
 import Board from './board/Board.js';
+import Input from './input/Input.js';
 
 const EE = Phaser.Events.EventEmitter;
 
@@ -10,24 +11,20 @@ class Bejeweled extends EE {
         super();
 
         this.scene = scene;
-        this.board = new Board(scene, config);
+        this.board = new Board(this, config);
         this.mainState = new MainState(this, config);
+        this.input = new Input(this, config);
 
         this.boot();
     }
 
     boot() {
-        // touch control
-        this.board
-            .onPointerDown(this.selectChess, this)
-            .onPointerMove(this.selectChess, this)
-            .onPointerUp(this.cancelSelecting, this);
-
         this.scene.events.once('shutdown', this.destroy, this);
     }
 
     shutdown() {
         super.shutdown();
+        this.input.shutdown();
         this.board.shutdown();
         this.mainState.shutdown();
 
@@ -53,13 +50,43 @@ class Bejeweled extends EE {
         return this;
     }
 
-    selectChess(pointer, chess) {
-        this.mainState.selectChess(chess);
+    // Input methods
+    get selectedChess1() {
+        return this.mainState.selectedChess1;
     }
 
-    cancelSelecting() {
-        this.mainState.selectChess();
+    selectChess1(chess) {
+        this.mainState.selectChess1(chess);
+        return this;
     }
+
+    selectChess2(chess) {
+        this.mainState.selectChess2(chess);
+        return this;
+    }
+
+    setInputEnable(enable) {
+        this.input.setEnable(enable);
+        return this;
+    }
+
+    // Board methods    
+    worldXYToChess(worldX, worldY) {
+        return this.board.worldXYToChess(worldX, worldY);
+    }
+
+    tileXYToChess(tileX, tileY) {
+        return this.board.tileXYToChess(tileX, tileY);
+    }
+
+    getNeighborChessAtAngle(chess, angle) {
+        return this.board.getNeighborChessAtAngle(chess, angle);
+    }
+
+    getNeighborChessAtDirection(chess, direction) {
+        return this.board.getNeighborChessAtDirection(chess, direction);
+    }
+
 }
 
 var loadRexBoardPlugin = function (scene) {
