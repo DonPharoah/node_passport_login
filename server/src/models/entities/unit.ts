@@ -42,17 +42,17 @@ class Unit extends Entity {
     };
     // @ts-ignore
     this.body.onCollisionEnd = (collidedObject) => {
-      //clearInterval(timer);
+      // Called when line of sight ends, due to either target leaving range or being destroyed
       const targetEntity = collidedObject.ownerEntity as Entity;
-
+      // If targetEntity was an enemy
       if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
         delete this.enemiesInLOS[targetEntity.id];
+        // If this unit was attacking targetEntity
         if (targetEntity == this.attackTarget) {
-          this.attackTarget = null;
-          clearInterval(this.attackTimer);
-          // Attack target has left range
+          // Remove attack observer and stop timer
+          this.removeAttackTarget();
+          // Look for other targets in range. Right now just target next in array, but later look through list and prioritize
           if (Object.keys(this.enemiesInLOS).length > 0) {
-            // Look for another target in range. Right now just target next in array, but later look through list and prioritize
             const nextTargetKey = Object.keys(this.enemiesInLOS)[0];
             this.designateAttackTarget(scene, this.enemiesInLOS[nextTargetKey]);
           } else {
@@ -81,6 +81,7 @@ class Unit extends Entity {
     this.onDestroyedEvent = () => {
       // @ts-ignore
       this.body.onCollisionEnd = (collidedObject) => {};
+      this.removeAttackTarget();
       scene.removeUnit(this.id);
     };
   }
@@ -95,6 +96,11 @@ class Unit extends Entity {
     });
   }
 
+  private removeAttackTarget() {
+    this.attackTarget = null;
+    clearInterval(this.attackTimer);
+  }
+
   private designateAttackTarget(scene, target) {
     if (!this.attackTarget) {
       this.attackTarget = target;
@@ -104,13 +110,7 @@ class Unit extends Entity {
         scene.updateEntityHealth(this.attackTarget, this);
       }, 1000);
       this.attackTarget.addDestructionCallback(() => {
-        clearInterval(this.attackTimer);
-        // this.attackTarget = null;
-        // if (Object.keys(this.enemiesInLOS).length > 0) {
-        //   // Look for another target in range. Right now just target next in array, but later look through list and prioritize
-        //   const nextTargetKey = Object.keys(this.enemiesInLOS)[0];
-        //   this.designateAttackTarget(scene, this.enemiesInLOS[nextTargetKey]);
-        // }
+        //clearInterval(this.attackTimer);
       });
     }
   }
