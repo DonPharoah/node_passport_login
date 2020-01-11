@@ -28,7 +28,7 @@ const initOverlayTexts = (uiScene: UIScene) => {
   // });
   const tooltipText: Phaser.GameObjects.Text = uiScene.make.text({
     x: 20,
-    y: 600,
+    y: 300,
     text: 'Heres a huge paragraph, words and words and words, more stuff more stuff',
     style: {
       fontSize: '14px',

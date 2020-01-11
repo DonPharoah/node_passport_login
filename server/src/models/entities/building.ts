@@ -8,6 +8,7 @@ import ServerScene from '../../scenes/serverScene';
 
 class Building extends Entity {
   public readonly body: Body;
+  public readonly range: Body;
   public readonly ownerId: string;
 
   constructor(scene: ServerScene, position: Vector, radius: number, ownerId: string) {
@@ -17,6 +18,7 @@ class Building extends Entity {
     this.ownerId = ownerId;
     this.id = seed.generate();
     this.body = Bodies.circle(x, y, radius, { isStatic: true, isSensor: false });
+    //this.range = Bodies.circle(x, y, radius, { isStatic: true, isSensor: false });
     // @ts-ignore
     this.body.ownerEntity = this;
     // @ts-ignore

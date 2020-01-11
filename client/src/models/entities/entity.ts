@@ -1,17 +1,18 @@
 import ClientScene from '../../scenes/clientScene';
 import { GameObjects } from 'phaser';
 
-abstract class Entity extends Phaser.GameObjects.GameObject implements Selectable {
+export abstract class Entity extends Phaser.GameObjects.GameObject implements Selectable, Damagable {
   public ownerId: string;
   public readonly id: string;
-  abstract DESCRIPTION: string = 'Entity';
-  abstract selectedEvent(): Entity;
-  abstract deselectedEvent(): Entity;
-  public abstract _shape: GameObjects.GameObject & {
-    x;
-    y;
-  };
-  abstract getPosition();
+  // abstract DESCRIPTION: string = 'Entity';
+  public abstract selectedEvent(): Entity;
+  public abstract deselectedEvent(): Entity;
+  public abstract shape: GameObjects.GameObject & { x: number; y: number };
+  public abstract getPosition();
+  public currentHealth: number;
+  public healthBar: GameObjects.Graphics;
+  public healthBarWidth: number;
+  public healthBarHeight: number;
 
   constructor(scene: Phaser.Scene, type: string, ownerId: string, id: string) {
     super(scene, type);
@@ -19,8 +20,10 @@ abstract class Entity extends Phaser.GameObjects.GameObject implements Selectabl
     this.id = id;
   }
 
-  public addDestructionListener(callback: () => {}) {}
-
+  public abstract initHealthBar(): void;
+  public abstract checkHealthAndRedraw(): void;
+  public abstract redrawHealthBar(): void;
+  public abstract setHealth(newHealth: number): void;
   public abstract remove();
+  public addDestructionListener(callback: () => {}) {}
 }
-export default Entity;

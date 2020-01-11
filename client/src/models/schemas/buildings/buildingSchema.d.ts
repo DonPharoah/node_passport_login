@@ -1,11 +1,17 @@
+declare type BuildingPresetConstants = import('../../entities/building').BuildingPresetConstants;
+
 interface BuildingSchema {
-  type: import('../../entities/building').Building.Types;
+  presetType: BuildingPresetConstants;
   color: number;
   name: string;
   size: number;
-  health: number;
-  handler: () => void;
+  shape: 'TRIANGLE' | 'SQUARE' | 'RECTANGLE' | 'CIRCLE';
+  maxHealth: number;
+  update: () => void;
+  testHandler: () => void;
 }
-interface BuildingData {
-  [buildingType: string]: BuildingSchema;
-}
+
+type BuildingPresets = {
+  [key in BuildingPresetConstants]: BuildingSchema;
+};
+// type BuildingPresets = Record<BuildingPresetConstants, BuildingSchema>;

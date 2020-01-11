@@ -1,7 +1,9 @@
 import { Building } from '../models/entities/building';
 import ClientScene from '../scenes/clientScene';
 import { Unit } from '../models/entities/unit';
-import Entity from '../models/entities/entity';
+import { Entity } from '../models/entities/entity';
+import { UnitFactory } from '../models/entities/factories/unitFactory';
+import { BuildingFactory } from '../models/entities/factories/buildingFactory';
 import UIScene from '../views/uiScene';
 
 export class Utils {
@@ -10,10 +12,12 @@ export class Utils {
   }
   public static addNewBuildingToScene(
     scene: ClientScene,
-    options: { position: { x; y }; id: string; ownerId: string }
+    options: { position: { x; y }; id: string; ownerId: string },
+    presetType: BuildingPresetConstants
   ) {
     const { position, id, ownerId } = options;
-    const newBuilding = new Building(scene, position, id, ownerId, 1000);
+    // const newBuilding = new Building(scene, position, id, ownerId, 'BARRACKS');
+    const newBuilding = BuildingFactory.creatBuilding(presetType, scene, position, id, ownerId);
     newBuilding.rectangle.setStrokeStyle(3, parseInt(scene.playersList[ownerId].color, 16));
     scene.add.existing(newBuilding);
   }
@@ -23,7 +27,8 @@ export class Utils {
     options: { position: { x; y }; id: string; ownerId: string; targetId?: string }
   ) {
     const { position, id, ownerId } = options;
-    const newUnit = new Unit(scene, position, id, ownerId, 500);
+    // const newUnit = new Unit(scene, position, id, ownerId, 'TEST');
+    const newUnit = UnitFactory.createUnit('TEST', scene, position, id, ownerId);
     newUnit.rectangle.setStrokeStyle(3, parseInt(scene.playersList[ownerId].color, 16));
     scene.add.existing(newUnit); //not showing
   }

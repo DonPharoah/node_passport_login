@@ -1,109 +1,117 @@
 import ClientScene from '../../scenes/clientScene';
-// import { getGuiController } from '../../controllers/guiController';
 import { Building } from './building';
-import Entity from './entity';
+import { Entity } from './entity';
+import unitPresets from '../schemas/units/unitPresets';
 
-export class Unit extends Entity implements Damagable {
+// export type UnitPresetConstants = 'TEST' | 'DESTROYER';
+export type UnitPresetConstants = typeof Unit.PresetConstants;
+
+export class Unit extends Entity {
+  public static readonly PresetConstants: 'TEST' | 'DESTROYER';
   private static HEALTH_BAR_FILL_COLOR: number = 0x00dd33;
+  private static FILL_COLOR: number = 0xffffff;
   public healthBarWidth: number;
   public healthBarHeight: number;
-  public maxHealth: number = 1000; // change later to come from building type data
-  public currentHealth: number;
+  // public currentHealth: number;
   public healthBar: Phaser.GameObjects.Graphics;
-  private _target: Building;
-  _shape: Phaser.GameObjects.Rectangle;
+  private target: Building;
+  public shape: Phaser.GameObjects.Shape;
   public readonly ownerId: string;
-  public readonly DESCRIPTION = 'Unit';
-  private static FILL_COLOR = 0xffffff;
   private clientScene: ClientScene;
-  private _container: Phaser.GameObjects.Container;
+  private container: Phaser.GameObjects.Container;
+  public preset: UnitSchema;
+  // public damageComponent: Damagable;
 
   constructor(
     scene: ClientScene,
-    position: { x; y },
+    position: { x: number; y: number },
     id: string,
     ownerId: string,
-    health: number = 500,
-    target?: Building
+    presetType: UnitPresetConstants
   ) {
     super(scene, 'unit', ownerId, id);
+    // Object.assign(this, damageComponent);
     this.clientScene = scene;
-    this._container = scene.add.container(position.x, position.y);
-    this._shape = scene.add.rectangle(0, 0, 10, 10, Unit.FILL_COLOR);
-    this._container.add(this._shape);
-    this.currentHealth = health;
-    this.healthBarWidth = 35;
-    this.healthBarHeight = this._shape.width / 7;
+    this.hydratePresetData(presetType);
+    this.container = scene.add.container(position.x, position.y);
+
+    // this.shape = scene.add.rectangle(0, 0, 10, 10, Unit.FILL_COLOR);
+    this.shape = scene.add.triangle(0, 0, 10, 10, 20, 20, 30, 10, Unit.FILL_COLOR);
+    this.container.add(this.shape);
     this.initHealthBar();
     scene.units.add(this);
+    const debugRangeCircle = scene.add.circle(0, 0, this.preset.range, this.preset.fillColor, 0.1);
+    this.container.add(debugRangeCircle);
   }
-  selectedEvent() {
+
+  public selectedEvent() {
     return this;
   }
-  deselectedEvent() {
+
+  public deselectedEvent() {
     return this;
   }
+
   public setPosition({ x, y }) {
-    this._container.setPosition(x, y);
+    this.container.setPosition(x, y);
   }
+
   get rectangle() {
-    return this._shape;
+    return this.shape;
   }
+
   public initHealthBar() {
+    this.currentHealth = this.preset.maxHealth;
+    this.healthBarWidth = 35;
+    this.healthBarHeight = this.shape.width / 7;
     this.healthBar = this.clientScene.add.graphics();
-    this._container.add(this.healthBar);
+    this.container.add(this.healthBar);
     this.checkHealthAndRedraw();
   }
+
   public checkHealthAndRedraw() {
-    if (this.currentHealth >= this.maxHealth) {
-      this.currentHealth = this.maxHealth;
+    if (this.currentHealth >= this.preset.maxHealth) {
+      this.currentHealth = this.preset.maxHealth;
       this.healthBar.clear();
-    } else if (this.currentHealth < this.maxHealth && this.currentHealth > 0) {
+    } else if (this.currentHealth < this.preset.maxHealth && this.currentHealth > 0) {
       this.redrawHealthBar();
     } else {
       this.remove();
     }
   }
+
   public redrawHealthBar() {
     this.healthBar.clear();
-    this.healthBar.x = this._shape.x;
-    this.healthBar.y = this._shape.y;
+    this.healthBar.x = this.shape.x;
+    this.healthBar.y = this.shape.y;
     this.healthBar.fillStyle(Unit.HEALTH_BAR_FILL_COLOR, 1);
     this.healthBar.fillRect(
-      -this._shape.width / 2,
-      this._shape.height / 2 + 10,
-      this.healthBarWidth * (this.currentHealth / this.maxHealth),
+      -this.shape.width / 2,
+      this.shape.height / 2 + 10,
+      this.healthBarWidth * (this.currentHealth / this.preset.maxHealth),
       10
     );
     this.healthBar.lineStyle(2, 0xffffff);
-    this.healthBar.strokeRect(-this._shape.width / 2, this._shape.height / 2 + 10, this.healthBarWidth, 10);
+    this.healthBar.strokeRect(-this.shape.width / 2, this.shape.height / 2 + 10, this.healthBarWidth, 10);
     this.healthBar.setDepth(1);
   }
-  public dealDamage(damageAmount: number) {
-    this.currentHealth -= damageAmount;
-    this.checkHealthAndRedraw();
-  }
-  public dealHealing(healingAmount: number) {
-    this.currentHealth += healingAmount;
-    this.checkHealthAndRedraw();
-  }
+
   public setHealth(newHealth: number) {
     this.currentHealth = newHealth;
     this.checkHealthAndRedraw();
   }
+
   public remove() {
     this.healthBar.destroy();
-    this._shape.destroy();
+    this.shape.destroy();
     this.destroy();
   }
 
-  getPosition() {
-    return this._container;
+  public getPosition() {
+    return this.container;
   }
-}
 
-export namespace Unit {
-  export const enum Types {
-    TEST = 'test'
+  public hydratePresetData(presetType: UnitPresetConstants) {
+    this.preset = { ...unitPresets[presetType] };
   }
 }

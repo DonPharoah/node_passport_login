@@ -5,7 +5,7 @@ import { initDebugGui_sceneCommands } from '../utils/debugGui';
 import { Events } from '../models/schemas/eventConstants';
 import { Utils } from '../utils/utils';
 import * as io from 'socket.io-client';
-import Entity from '../models/entities/entity';
+import { Entity } from '../models/entities/entity';
 
 class ClientScene extends Phaser.Scene {
   private isConnected: boolean = false;
@@ -29,7 +29,7 @@ class ClientScene extends Phaser.Scene {
   public currentSelected: { entity: Entity; circle: Phaser.GameObjects.Image }[] = [];
   public mouseOversIndex: number = 0;
   public playerColor: string;
-  public playersList: any;
+  public playersList: Players = {};
   public keyW: Phaser.Input.Keyboard.Key;
   public keyA: Phaser.Input.Keyboard.Key;
   public keyS: Phaser.Input.Keyboard.Key;
@@ -238,26 +238,34 @@ class ClientScene extends Phaser.Scene {
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
 
-    this.socket.on(Events.PLAYER_INIT, (playersList) => {
+    this.socket.on(Events.PLAYER_INIT, (playersList: Players) => {
       // code to run when server processes that the player has connected
       this.playersList = playersList;
       this.playerColor = playersList[this.socket.id].color;
     });
-    this.socket.on(Events.CONNECTION, (player) => {
+    this.socket.on(Events.CONNECTION, (player: Player) => {
       console.log('YOU CONNECTED');
       uiScene.showOverlayMessage(`Player: ${player} connected.`);
       this.playersList[player.id] = player;
     });
-    this.socket.on(Events.PLAYER_DISCONNECTED, (player) => {
+    this.socket.on(Events.PLAYER_DISCONNECTED, (player: Player) => {
       uiScene.showOverlayMessage(`Player: ${player.name} disconnected.`);
       delete this.playersList[player.id];
     });
-    this.socket.on(Events.UPDATE_PLAYERS_LIST, (options) => {
-      console.log('running update_players_list');
-      const { playersList } = options;
-      this.playersList = playersList;
-      this.updateEntityData(options);
-    });
+    this.socket.on(
+      Events.UPDATE_PLAYERS_LIST,
+      (playersData: {
+        newOwnerId: number;
+        oldOwnerId: string;
+        playersList: Players;
+        joinOrLeave: number;
+      }) => {
+        console.log('running update_players_list');
+        const { playersList } = playersData;
+        this.playersList = playersList;
+        this.updateEntityData(playersData);
+      }
+    );
     this.socket.on(Events.ERROR_STATUS, (errorMessage: string) => {
       uiScene.showOverlayError(errorMessage);
     });
@@ -268,7 +276,7 @@ class ClientScene extends Phaser.Scene {
       this.data.set('userName', newName);
       uiScene.showOverlayMessage(`Server allowed name change to: ${newName}`);
     });
-    this.socket.on(Events.SERVER_STATUS_UPDATE, (unitPositions: any[]) => {
+    this.socket.on(Events.SERVER_STATUS_UPDATE, (unitPositions: { position: { x; y }; id: string }[]) => {
       unitPositions.forEach((current) => {
         const { position, id } = current;
         try {
@@ -278,38 +286,47 @@ class ClientScene extends Phaser.Scene {
         }
       });
     });
-    this.socket.on(Events.NEW_UNIT_ADDED, (newUnit) => {
-      console.log(newUnit);
-      Utils.addNewUnitToScene(this, newUnit);
-      this.howie.play();
-    });
-    this.socket.on(Events.NEW_BUILDING_ADDED, (newBuilding) => {
-      console.log(newBuilding);
-      uiScene.showOverlayMessage('New building added!');
-      Utils.addNewBuildingToScene(this, newBuilding);
-    });
-    this.socket.on(Events.BUILDING_REMOVED, (removeBuildingId) => {
+    this.socket.on(
+      Events.NEW_UNIT_ADDED,
+      (newUnit: { position: { x; y }; id: string; ownerId: string; targetId?: string }) => {
+        console.log(newUnit);
+        Utils.addNewUnitToScene(this, newUnit);
+        this.howie.play();
+      }
+    );
+    this.socket.on(
+      Events.NEW_BUILDING_ADDED,
+      (newBuilding: { position: { x; y }; id: string; ownerId: string; targetId?: string }) => {
+        console.log(newBuilding);
+        uiScene.showOverlayMessage('New building added!');
+        Utils.addNewBuildingToScene(this, newBuilding, 'MINER');
+      }
+    );
+    this.socket.on(Events.BUILDING_REMOVED, (removeBuildingId: string) => {
       Utils.removeBuildingFromScene(this, removeBuildingId);
       uiScene.showOverlayMessage('Building removed.');
     });
-    this.socket.on(Events.UNIT_REMOVED, (removeUnitId) => {
+    this.socket.on(Events.UNIT_REMOVED, (removeUnitId: string) => {
       Utils.removeUnitFromScene(this, removeUnitId);
       this.wilhelm.play();
     });
-    this.socket.on(Events.LOAD_ALL_BUILDINGS, (buildings) => {
-      buildings.forEach((payload) => {
-        Utils.addNewBuildingToScene(this, payload);
+    this.socket.on(
+      Events.LOAD_ALL_BUILDINGS,
+      (buildings: { position: { x; y }; id: string; ownerId: string }[]) => {
+        buildings.forEach((building) => {
+          Utils.addNewBuildingToScene(this, building, 'MINER');
+        });
+      }
+    );
+    this.socket.on(Events.LOAD_ALL_UNITS, (units: { position: { x; y }; id: string; ownerId: string }[]) => {
+      units.forEach((unit) => {
+        Utils.addNewUnitToScene(this, unit);
       });
     });
-    this.socket.on(Events.LOAD_ALL_UNITS, (units) => {
-      units.forEach((payload) => {
-        Utils.addNewUnitToScene(this, payload);
-      });
-    });
-    this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
-      console.log(newEntity);
-      //this.addNewBuildingToScene(newEntity);
-    });
+    // this.socket.on(Events.PLAYER_ISSUE_COMMAND, (newEntity) => {
+    //   console.log(newEntity);
+    //   //this.addNewBuildingToScene(newEntity);
+    // });
     this.socket.on(Events.DEBUG_MESSAGE, (message) => {
       // uiScene.appendToTextArea(message);
     });

@@ -1,11 +1,18 @@
+declare type UnitPresetConstants = import('../../entities/unit').UnitPresetConstants;
+
 interface UnitSchema {
-  type: import('../../entities/unit').Unit.Types;
-  color: number;
+  presetType: UnitPresetConstants;
+  fillColor: number;
   name: string;
   size: number;
-  health: number;
-  handler: () => void;
+  maxHealth: number;
+  range: number;
+  update: () => void;
+  testHandler: () => void;
 }
-interface UnitData {
-  [unitType: string]: UnitSchema;
-}
+
+type UnitPresets = {
+  [key in UnitPresetConstants]: UnitSchema;
+};
+// does the same thing:
+// type UnitPresets = Record<UnitPresetConstants, UnitSchema>;

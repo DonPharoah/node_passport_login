@@ -1,5 +1,6 @@
 import UIScene from '../uiScene';
-import buildingData from '../../models/schemas/buildings/buildingData';
+import buildingPresets from '../../models/schemas/buildings/buildingPresets';
+
 type itemElement = { id: number; color: number };
 const COLOR_PRIMARY = 0x5c6666;
 const COLOR_LIGHT = 0x7b5e57;
@@ -20,10 +21,10 @@ let buildingPanel;
 //   }
 //   return data;
 // };
-const initBuildingPanel = (uiScene: UIScene) => {
+const createBuildingPanel = (uiScene: UIScene) => {
   let title = uiScene.rexUI.add.label({
     orientation: 'x',
-    text: uiScene.add.text(0, 0, 'Buildings', { fontSize: 18 })
+    text: uiScene.add.text(0, 0, 'Buildings', { fontSize: 18, fontFamily: 'Arial', resolution: 2 })
   });
   buildingPanel = uiScene.rexUI.add
     .sizer({
@@ -31,11 +32,11 @@ const initBuildingPanel = (uiScene: UIScene) => {
     })
     // .addBackground(uiScene.rexUI.add.roundRectangle(0, 0, 0, 0, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222))
     .add(title, 0, 'left', 3, true)
-    .add(initGridTable(uiScene), 1, 'left', 5, true);
+    .add(createGridTable(uiScene), 1, 'left', 5, true);
   return buildingPanel;
 };
 
-const initGridTable = (uiScene: UIScene) => {
+const createGridTable = (uiScene: UIScene) => {
   // guiController = getGuiController();
   let gameWidth = uiScene.game.config.width;
   let scrollMode = 1; // 0:vertical, 1:horizontal
@@ -112,7 +113,7 @@ const initGridTable = (uiScene: UIScene) => {
       cellContainer.getElement('background').setFillStyle(0x888888);
       return cellContainer;
     },
-    items: Object.values(buildingData),
+    items: Object.values(buildingPresets),
     draggable: false
   });
   // .layout();
@@ -133,8 +134,12 @@ function initGridTableHandler(uiScene: UIScene, gridTable) {
     })
     .on('cell.click', (cellContainer, cellIndex) => {
       console.log("running cell's callback...");
-      gridTable.items[cellIndex].handler();
+      let foundBuilding: BuildingSchema = gridTable.items[cellIndex];
+      if (foundBuilding.presetType === 'BARRACKS') {
+        console.log('clicked on barracks!');
+      }
+      foundBuilding.testHandler();
     });
 }
 export const getBuildingPanel = () => buildingPanel;
-export { initBuildingPanel };
+export { createBuildingPanel };

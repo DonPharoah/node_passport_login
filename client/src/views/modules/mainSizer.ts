@@ -23,10 +23,11 @@ let data = {
     { name: 'M' }
   ]
 };
-const initMainSizer = (uiScene: UIScene) => {
+const createMainSizer = (uiScene: UIScene) => {
   mainSizer = uiScene.rexUI.add
     .sizer({
       y: 250,
+      width: 800,
       anchor: {
         left: '0%',
         bottom: '100%'
@@ -51,4 +52,4 @@ export const getMainSizer = () => {
   return mainSizer;
 };
 
-export { initMainSizer };
+export { createMainSizer };

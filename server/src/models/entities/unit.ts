@@ -6,7 +6,8 @@ import ServerScene from '../../scenes/serverScene';
 
 class Unit extends Entity {
   public readonly body: Body;
-  private _target: Building;
+  public readonly range: Body;
+  private target: Building;
   public readonly ownerId: string;
   private unitAI: UnitAI;
   private friendsInLOS = {};
@@ -66,13 +67,13 @@ class Unit extends Entity {
 
     this.id = seed.generate();
     if (target) {
-      const targetPosition = this._target.body.position;
+      const targetPosition = this.target.body.position;
       const currentPosition = this.body.position;
       const distance = Vector.sub(targetPosition, currentPosition);
       //console.log("setting body's velocity...");
       //Body.setVelocity(this.body, Vector.div(distance, 100));
       this.unitAI = new GotoAI(this, targetPosition, () => {
-        this.unitAI = new OrbitAI(this.body.position, 60, this._target.body.position);
+        this.unitAI = new OrbitAI(this.body.position, 60, this.target.body.position);
       });
     } else {
       //Body.setVelocity(this.body, { x: 10, y: 20 });
@@ -87,9 +88,9 @@ class Unit extends Entity {
   }
 
   private designateFollowTarget(scene, moveTarget, returnTarget) {
-    this._target = moveTarget;
+    this.target = moveTarget;
     // If movement target is destroyed
-    this._target.addDestructionCallback(() => {
+    this.target.addDestructionCallback(() => {
       this.unitAI = new GotoAI(this, returnTarget.body.position, () => {
         this.unitAI = new OrbitAI(this.body.position, 60, returnTarget.body.position);
       });
