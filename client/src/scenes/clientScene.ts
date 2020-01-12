@@ -161,47 +161,35 @@ class ClientScene extends Phaser.Scene {
     if (pointer.primaryDown) {
       let worldX = pointer.worldX;
       let worldY = pointer.worldY;
-      let i = this.mouseOversIndex;
+      let uiScene = Utils.uiScene(this.game);
 
-      // TODO: this block needs work. Must handle deselecting on click, and multiple selections
-      //mouse is over objects
-      if (this.mouseOvers.length > 0) {
-        let uiScene = Utils.uiScene(this.game);
-        // DESELECT BUILDING EVENT
+      if (this.mouseOvers.length == 1) {
+        // Cursor over single entity
         if (this.currentSelected.length > 0) {
-          let previouslySelected = this.currentSelected[0];
-          // Only one entity is under cursor, so deselect it
-          if (this.mouseOvers.length == 1) {
-            // remove previously selected entity
-            if (this.findBuildingInCurrentSelected(this.mouseOvers[0] as Building)) {
-              this.deselectAllEntities();
-              this.currentSelected = [];
-              return;
-            }
-            // console.log(`length before removal: ${this.currentSelected.length}`);
-            // let foundIndex = this.currentSelected.findIndex(
-            //   (current) => current.entity === previouslySelected.entity
-            // );
-            // this.currentSelected.splice(foundIndex, 1);
-            // console.log(`length after removal: ${this.currentSelected.length}`);
+          // Currently selecting entity, so check if cursor is over selected
+          this.mouseOversIndex = 0;
+          if (this.mouseOvers[0] === this.currentSelected[0].entity) {
+            // cursor is over selected entity, so deselect
+            this.deselectAllEntities();
           } else {
-            // something is already selected, so deselect the previous one
-            previouslySelected.entity.deselectedEvent(); // TODO: does nothing right now
-            this.deselectEntity(previouslySelected); // removes circle
-            uiScene.onSelectionAmountChanged(this.currentSelected);
+            // cursor is over unselected entity, so unselect current and select new
+            this.deselectAllEntities();
+            this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
           }
+        } else {
+          // Currently selecting nothing, so select
+          this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
         }
-        // SELECT BUILDING EVENT
-        // check to make sure this is your building
-        if (this.mouseOvers[i].ownerId === this.socket.id) {
-          const entity = this.mouseOvers[i].selectedEvent(); // TODO: does nothing right now
-          const circle = this.addSelectionCircle(entity.getPosition());
-          this.currentSelected[0] = { entity, circle };
-          uiScene.onSelectionAmountChanged(this.currentSelected);
-          // TODO: PROBLEM line
-          i = i === length - 1 ? 0 : this.mouseOversIndex + 1;
-        }
+      } else if (this.mouseOvers.length > 1) {
+        // Cursor is over multiple entities, so deselect current entity
+        this.deselectAllEntities();
+        // and scroll through entities under cursor
+        this.mouseOversIndex < this.mouseOvers.length - 1
+          ? this.mouseOversIndex++
+          : (this.mouseOversIndex = 0);
+        this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
       } else {
+        // Cursor is not over entity
         this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
       }
     }
@@ -352,7 +340,6 @@ class ClientScene extends Phaser.Scene {
     let uiScene = Utils.uiScene(this.game);
     uiScene.clearText();
     this.mouseOvers.push(objectMousedOver);
-    this.mouseOversIndex = 0;
     // uiScene.showMessage(`Selected: ${this.mouseOvers[0].id}`);
     this.mouseOvers.forEach((current) => {
       //
@@ -367,7 +354,6 @@ class ClientScene extends Phaser.Scene {
       this.mouseOvers.splice(i, 1);
     }
 
-    this.mouseOversIndex = 0;
     if (this.mouseOvers.length > 0) {
       this.mouseOvers.forEach((current) => {
         //
@@ -478,6 +464,12 @@ class ClientScene extends Phaser.Scene {
     }
   }
 
+  public selectEntity(selectedEntity: Entity) {
+    const entity = selectedEntity;
+    const circle = this.addSelectionCircle(entity.getPosition());
+    this.currentSelected[0] = { entity, circle };
+  }
+
   public deselectAllEntities() {
     this.currentSelected.forEach(this.deselectEntity);
     this.currentSelected = [];
@@ -487,8 +479,10 @@ class ClientScene extends Phaser.Scene {
   public deselectEntity(selectedEntity: { entity: Entity; circle: Phaser.GameObjects.Image }) {
     console.log('destroying selection circle...');
     selectedEntity.circle.destroy();
+    let deleteEntity = selectedEntity.entity;
     // current.entity.deselectedEvent();
     // current.entity.destroy();
+    //this.currentSelected.find((foundEntity) => foundEntity.entity === deleteEntity);
   }
 }
 export let getClientSceneInstance;
