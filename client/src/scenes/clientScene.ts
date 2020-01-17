@@ -167,7 +167,7 @@ class ClientScene extends Phaser.Scene {
       const mouseOverSelected = this.currentSelected.filter((selected) =>
         this.mouseOvers.includes(selected.entity)
       );
-      const isAlreadySelected = mouseOverSelected.length === 0;
+      const isNoneSelected = mouseOverSelected.length === 0;
 
       if (this.mouseOvers.length > 0) {
         // Cursor over single entity
@@ -177,7 +177,7 @@ class ClientScene extends Phaser.Scene {
           this.mouseOversIndex = 0;
 
           if (this.keySHIFT.isDown) {
-            if (isAlreadySelected) {
+            if (isNoneSelected) {
               this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
             } else {
               this.deselectEntity(
@@ -191,7 +191,7 @@ class ClientScene extends Phaser.Scene {
 
           // Currently selecting nothing, so select
         } else {
-          if (isAlreadySelected) this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
+          if (isNoneSelected) this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
         }
         // Cursor is over multiple entities, so deselect current entity
       } else {
