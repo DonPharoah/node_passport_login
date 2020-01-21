@@ -343,7 +343,6 @@ class ClientScene extends Phaser.Scene {
         entity.setHealth(health);
         this.drawLaser(damagerEntity.getPosition(), entity.getPosition());
       });
-      console.log(`damage`);
       this.updateDebugGui();
     });
   }
@@ -361,19 +360,11 @@ class ClientScene extends Phaser.Scene {
   public mouseOffEvent(objectMousedOff: Entity) {
     let uiScene = Utils.uiScene(this.game);
     uiScene.clearText();
-    const i = this.mouseOvers.indexOf(objectMousedOff);
-    if (i > -1) {
-      this.mouseOvers.splice(i, 1);
-    }
-
-    if (this.mouseOvers.length > 0) {
-      this.mouseOvers.forEach((current) => {
-        //
-      });
-    }
+    this.mouseOvers = this.mouseOvers.filter((mouseOverEntity) => mouseOverEntity !== objectMousedOff);
   }
 
   public buildingWasRemoved(building: Building) {
+    this.mouseOffEvent(building);
     let foundBuilding = this.findBuildingInCurrentSelected(building);
     if (foundBuilding) {
       this.deselectEntity(foundBuilding);

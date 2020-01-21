@@ -2,15 +2,52 @@ import Unit from '../../entities/unit';
 import { Events } from '../../../models/schemas/eventConstants';
 import ServerScene from '../../../scenes/serverScene';
 import { BuildingPresets } from './buildingSchema';
+import Entity from '../../entities/entity';
 
-let FACTORY_BUILDING_CREATE_UNIT = (
+const FACTORY_BUILDING_CREATE_UNIT = (
   scene: ServerScene,
   commandingBuilding: Building,
   buildingTargeted: Building
 ) => {
-  const newUnit = new Unit(scene, commandingBuilding.body.position, 50, buildingTargeted, commandingBuilding);
+  let factoryBuilding: any = commandingBuilding;
+  const createUnit = () => {
+    // create new Drone and push it to list
+    const newUnit = new Unit(
+      scene,
+      commandingBuilding.body.position,
+      50,
+      buildingTargeted,
+      commandingBuilding
+    );
+    factoryBuilding.drones.push(newUnit);
+    // add new drone to scene
+    scene.addEntityToSceneAndNotify(scene.units, newUnit, Events.NEW_UNIT_ADDED, commandingBuilding.ownerId);
+    // building listen for drone's destruction and remove from list
+    newUnit.addDestructionCallback((destroyedDrone: Unit) => {
+      factoryBuilding.drones = factoryBuilding.drones.filter(
+        (currentDrone: Unit) => currentDrone !== destroyedDrone
+      );
+    });
+    // drone listen for command Buildings destruction and self desruct for now.
+    commandingBuilding.addDestructionCallback(() => {
+      factoryBuilding.drones.forEach((drone: Unit) => {
+        drone.destroy();
+      });
+    });
+  };
 
-  scene.addEntityToSceneAndNotify(scene.units, newUnit, Events.NEW_UNIT_ADDED, commandingBuilding.ownerId);
+  if (factoryBuilding.drones) {
+    if (factoryBuilding.drones.length < 5) {
+      createUnit();
+    } else {
+      factoryBuilding.drones.forEach((drone) => {
+        drone.designateFollowTarget(scene, buildingTargeted, commandingBuilding);
+      });
+    }
+  } else {
+    factoryBuilding.drones = [];
+    createUnit();
+  }
 };
 
 let buildingPresets: BuildingPresets = {

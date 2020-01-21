@@ -58,18 +58,6 @@ class Unit extends Entity {
     this.designateFollowTarget(scene, target, returnTarget);
 
     this.id = seed.generate();
-    if (target) {
-      const targetPosition = this.target.body.position;
-      const currentPosition = this.body.position;
-      const distance = Vector.sub(targetPosition, currentPosition);
-      //console.log("setting body's velocity...");
-      //Body.setVelocity(this.body, Vector.div(distance, 100));
-      this.unitAI = new GotoAI(this, targetPosition, () => {
-        this.unitAI = new OrbitAI(this.body.position, 60, this.target.body.position);
-      });
-    } else {
-      //Body.setVelocity(this.body, { x: 10, y: 20 });
-    }
 
     this.onDestroyedEvent = () => {
       // @ts-ignore
@@ -79,13 +67,19 @@ class Unit extends Entity {
     };
   }
 
-  private designateFollowTarget(scene, moveTarget, returnTarget) {
+  public designateFollowTarget(scene, moveTarget, returnTarget: Building) {
     this.target = moveTarget;
     // If movement target is destroyed
     this.target.addDestructionCallback(() => {
       this.unitAI = new GotoAI(this, returnTarget.body.position, () => {
         this.unitAI = new OrbitAI(this.body.position, 60, returnTarget.body.position);
       });
+    });
+
+    const targetPosition = this.target.body.position;
+
+    this.unitAI = new GotoAI(this, targetPosition, () => {
+      this.unitAI = new OrbitAI(this.body.position, 60, this.target.body.position);
     });
   }
 

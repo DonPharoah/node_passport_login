@@ -9,7 +9,7 @@ abstract class Entity {
   //public onCollision = () => {};
   //public onCollisionEnd = () => {};
 
-  public addDestructionCallback(onDestroyed: () => void) {
+  public addDestructionCallback(onDestroyed: (entity: Entity) => void) {
     this.destructionListeners.push(onDestroyed);
   }
 
@@ -22,14 +22,24 @@ abstract class Entity {
     }
   }
 
+  public destroy() {
+    this.currentHealth = -1;
+    //this.takeDamage = () => {}; //TODO REMOVE
+    this.destructionListeners.forEach((callback) => {
+      callback(this);
+    });
+    this.destructionListeners = [];
+    this.onDestroyedEvent();
+  }
+
   public takeDamage(damage: number) {
     if (this.currentHealth > damage) {
       this.currentHealth = this.currentHealth - damage;
     } else {
       this.currentHealth = -1;
-      this.takeDamage = () => {}; //TODO REMOVE
+      //this.takeDamage = () => {}; //TODO REMOVE
       this.destructionListeners.forEach((callback) => {
-        callback();
+        callback(this);
       });
       this.destructionListeners = [];
       this.onDestroyedEvent();
@@ -38,7 +48,7 @@ abstract class Entity {
 
   public abstract setOwner(newOwnerId: string);
 
-  public abstract onDestroyedEvent();
+  protected abstract onDestroyedEvent();
   public abstract isDamagable();
 }
 export default Entity;

@@ -101,7 +101,7 @@ export class Utils {
       runOnEntity(foundBuilding as Building);
       return;
     } else {
-      console.log('building not found!');
+      //console.log('building not found!');
     }
     let unitArray = scene.units.getChildren();
     let foundUnit = unitArray.find((currentUnit: Unit) => {
@@ -110,7 +110,7 @@ export class Utils {
     if (foundUnit) {
       runOnEntity(foundUnit as Unit);
     } else {
-      console.log('unit not found!');
+      //console.log('unit not found!');
     }
   }
 }
