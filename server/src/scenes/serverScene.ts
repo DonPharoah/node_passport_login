@@ -13,6 +13,7 @@ import Building from '../models/entities/building';
 import Unit from '../models/entities/unit';
 import { Events } from '../models/schemas/eventConstants';
 import Entity from '../models/entities/entity';
+import buildingPresets from '../models/schemas/buildings/buildingPresets';
 
 class ServerScene {
   public playersList: Players = {};
@@ -42,15 +43,26 @@ class ServerScene {
     this.handleCollisionEvents();
   }
 
-  public addEntityToSceneAndNotify(group, newEntity, notifier: Events, targetId?: string) {
+  public addEntityToSceneAndNotify(group, newEntity, notifier: Events, socketId: string, targetId?: string) {
     console.log('Adding entity to server scene...');
-    const position = newEntity.body.position;
-    const { ownerId } = newEntity;
-    const id = newEntity.id;
-    console.log(`Entity '${newEntity.id}' added at: ${position.x}, ${position.y}`);
+    newEntity.ownerId = socketId;
+    const ownerId: string = newEntity.ownerId;
+    const id: string = newEntity.id;
+    let entityType: string = '';
+    if (newEntity instanceof Building) {
+      entityType = newEntity.preset.presetType;
+    }
+    console.log(`TYPE SERVER ${entityType}`);
+    //console.log(`Entity '${newEntity.id}' added at: ${position.x}, ${position.y}`);
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
-    this.io.emit(notifier, { position, id, ownerId, targetId });
+    this.io.emit(notifier, {
+      position: newEntity.body.position,
+      id: newEntity.id,
+      ownerId: newEntity.ownerId,
+      type: entityType,
+      targetId: targetId
+    });
   }
 
   public notifyClientOfEntities(clientSocket: SocketIO.Socket) {
@@ -61,7 +73,9 @@ class ServerScene {
       const position = currentBuilding.body.position;
       const { ownerId } = currentBuilding;
       const id = currentBuilding.id;
-      const payload = { position, id, ownerId };
+      const type = currentBuilding.preset.presetType;
+      const health: number = currentBuilding.currentHealth;
+      const payload = { position: position, id: id, ownerId: ownerId, health: health, type: type };
       buildingsToSend.push(payload);
     });
     Object.keys(this.units).forEach((currentId) => {
@@ -124,15 +138,15 @@ class ServerScene {
         delete this.playersList[socket.id];
         this.getBuildingsOfOwner(socket.id, (buildings) => {
           console.log('Buildings found ' + buildings.length);
-          buildings.map((ownerBuildings) => {
-            ownerBuildings.ownerId = '123';
+          buildings.map((ownerBuilding: Building) => {
+            ownerBuilding.setOwner('123');
             // ownerBuildings.name = 'WORLD';
             console.log('server: setted building data');
           });
         });
         this.getUnitsOfOwner(socket.id, (units) => {
-          units.map((ownerUnits) => {
-            ownerUnits.ownerId = '123';
+          units.map((ownerUnits: Unit) => {
+            ownerUnits.setOwner('123');
             // ownerUnits.name = 'WORLD';
           });
         });
@@ -147,8 +161,8 @@ class ServerScene {
 
       socket.on(Events.PLAYER_CONSTRUCT_BUILDING, (data: { x: number; y: number }) => {
         const { x, y } = data;
-        const newBuilding = new Building(this, { x, y }, 30, socket.id);
-        this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED);
+        const newBuilding = new Building(this, 'BARRACKS', { x, y }, 30, socket.id);
+        this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED, socket.id);
       });
 
       socket.on(
@@ -159,10 +173,11 @@ class ServerScene {
           const { targetId, selectedId } = data;
           let x = 0,
             y = 0,
-            newUnit,
-            targetBuilding;
+            newUnit: Unit,
+            selectedBuilding,
+            targetBuilding: Building;
           try {
-            ({ x, y } = this.findBuildingById(selectedId).body.position);
+            selectedBuilding = this.findBuildingById(selectedId);
           } catch (e) {
             console.log(e);
           }
@@ -172,10 +187,14 @@ class ServerScene {
           } catch (e) {
             console.log(e);
           }
-          if (targetBuilding) {
-            newUnit = new Unit(this, { x, y }, 50, socket.id, targetBuilding, this.buildings[selectedId]);
-            this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, targetId);
-          }
+
+          /*if (targetBuilding && targetBuilding.preset.presetType === 'MINER') {
+            // abstract this block into buildingPresets so that commands are specific to building type
+            newUnit = new Unit(this, { x, y }, 50, targetBuilding, this.buildings[selectedId]);
+            this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, socket.id);
+            targetBuilding.preset.command(newUnit);
+          }*/
+          targetBuilding.issueCommand(this, selectedBuilding, targetBuilding, { x, y });
         }
       );
     });
@@ -221,7 +240,7 @@ class ServerScene {
   }
 
   public updateEntityHealth(entity: Entity, entityCaller: Entity) {
-    this.io.emit(Events.UPDATE_ENTITY_HEALTH, entity.id, entity.health, entityCaller.id);
+    this.io.emit(Events.UPDATE_ENTITY_HEALTH, entity.id, entity.currentHealth, entityCaller.id);
   }
 
   public startServerUpdateTick() {
@@ -260,8 +279,8 @@ class ServerScene {
     // this.addEntityToSceneAndNotify(this.box);
     // World.add(world, [this.box, this.ground]);
 
-    const testBuilding = new Building(this, { x: 500, y: 500 }, 30, '123');
-    this.addEntityToSceneAndNotify(this.buildings, testBuilding, Events.NEW_BUILDING_ADDED);
+    const testBuilding = new Building(this, 'MINER', { x: 500, y: 500 }, 30, '123');
+    this.addEntityToSceneAndNotify(this.buildings, testBuilding, Events.NEW_BUILDING_ADDED, '123');
   }
 
   public updateUnitPositons() {

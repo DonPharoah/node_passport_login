@@ -1,7 +1,7 @@
 import { Building } from '../models/entities/building';
 import { Unit } from '../models/entities/unit';
 import { getMinimapCamera, initMinimapCamera } from '../controllers/minimapController';
-import { initDebugGui_sceneCommands } from '../utils/debugGui';
+import { initDebugGui_sceneCommands, debugGui } from '../utils/debugGui';
 import { Events } from '../models/schemas/eventConstants';
 import { Utils } from '../utils/utils';
 import * as io from 'socket.io-client';
@@ -163,16 +163,17 @@ class ClientScene extends Phaser.Scene {
       let worldY = pointer.worldY;
       let uiScene = Utils.uiScene(this.game);
 
+      //Check for entities under cursor
       if (this.mouseOvers.length == 1) {
-        // Cursor over single entity
+        // Cursor is over single entity
         if (this.currentSelected.length > 0) {
           // Currently selecting entity, so check if cursor is over selected
-          this.mouseOversIndex = 0;
           if (this.mouseOvers[0] === this.currentSelected[0].entity) {
             // cursor is over selected entity, so deselect
             this.deselectAllEntities();
           } else {
-            // cursor is over unselected entity, so unselect current and select new
+            // cursor is over unselected entity, so deselect current and select new
+            this.mouseOversIndex = 0;
             this.deselectAllEntities();
             this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
           }
@@ -274,9 +275,10 @@ class ClientScene extends Phaser.Scene {
         }
       });
     });
+
     this.socket.on(
       Events.NEW_UNIT_ADDED,
-      (newUnit: { position: { x; y }; id: string; ownerId: string; targetId?: string }) => {
+      (newUnit: { position: { x; y }; id: string; ownerId: string; type: any; targetId?: string }) => {
         console.log(newUnit);
         Utils.addNewUnitToScene(this, newUnit);
         this.howie.play();
@@ -284,12 +286,13 @@ class ClientScene extends Phaser.Scene {
     );
     this.socket.on(
       Events.NEW_BUILDING_ADDED,
-      (newBuilding: { position: { x; y }; id: string; ownerId: string; targetId?: string }) => {
+      (newBuilding: { position: { x; y }; id: string; ownerId: string; type: any; targetId?: string }) => {
         console.log(newBuilding);
         uiScene.showOverlayMessage('New building added!');
-        Utils.addNewBuildingToScene(this, newBuilding, 'MINER');
+        Utils.addNewBuildingToScene(this, newBuilding);
       }
     );
+
     this.socket.on(Events.BUILDING_REMOVED, (removeBuildingId: string) => {
       Utils.removeBuildingFromScene(this, removeBuildingId);
       uiScene.showOverlayMessage('Building removed.');
@@ -300,9 +303,11 @@ class ClientScene extends Phaser.Scene {
     });
     this.socket.on(
       Events.LOAD_ALL_BUILDINGS,
-      (buildings: { position: { x; y }; id: string; ownerId: string }[]) => {
+      (buildings: { position: { x; y }; id: string; ownerId: string; health: number; type: any }[]) => {
         buildings.forEach((building) => {
-          Utils.addNewBuildingToScene(this, building, 'MINER');
+          console.log(`LOADING BUILDING ${building.type}`);
+          const addedBuilding: Building = Utils.addNewBuildingToScene(this, building);
+          addedBuilding.setHealth(building.health);
         });
       }
     );
@@ -333,6 +338,8 @@ class ClientScene extends Phaser.Scene {
         entity.setHealth(health);
         this.drawLaser(damagerEntity.getPosition(), entity.getPosition());
       });
+      console.log(`damage`);
+      this.updateDebugGui();
     });
   }
 
@@ -468,21 +475,38 @@ class ClientScene extends Phaser.Scene {
     const entity = selectedEntity;
     const circle = this.addSelectionCircle(entity.getPosition());
     this.currentSelected[0] = { entity, circle };
+    Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
+    this.updateDebugGui();
   }
 
   public deselectAllEntities() {
-    this.currentSelected.forEach(this.deselectEntity);
+    this.currentSelected.forEach((entity) => {
+      this.deselectEntity(entity);
+    });
     this.currentSelected = [];
     Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
+    this.updateDebugGui();
   }
 
   public deselectEntity(selectedEntity: { entity: Entity; circle: Phaser.GameObjects.Image }) {
     console.log('destroying selection circle...');
+    this.currentSelected = this.currentSelected.filter(
+      (selection) => selection.entity !== selectedEntity.entity
+    );
     selectedEntity.circle.destroy();
     let deleteEntity = selectedEntity.entity;
     // current.entity.deselectedEvent();
     // current.entity.destroy();
     //this.currentSelected.find((foundEntity) => foundEntity.entity === deleteEntity);
+    this.updateDebugGui();
+  }
+
+  public updateDebugGui() {
+    let displayText: string = 'Selected: ';
+    this.currentSelected.forEach((selection) => {
+      displayText = displayText + `${selection.entity.getName()} `;
+    });
+    Utils.uiScene(this.game).setTitleText(displayText);
   }
 }
 export let getClientSceneInstance;

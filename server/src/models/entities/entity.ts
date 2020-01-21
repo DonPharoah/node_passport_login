@@ -2,8 +2,8 @@
 
 abstract class Entity {
   public id: string;
-  public health: number = 1000;
-  public maxHealth: number = 1000;
+  public ownerId: string;
+  public currentHealth: number;
   private destructionListeners = [];
 
   //public onCollision = () => {};
@@ -23,10 +23,10 @@ abstract class Entity {
   }
 
   public takeDamage(damage: number) {
-    if (this.health > damage) {
-      this.health = this.health - damage;
+    if (this.currentHealth > damage) {
+      this.currentHealth = this.currentHealth - damage;
     } else {
-      this.health = -1;
+      this.currentHealth = -1;
       this.takeDamage = () => {}; //TODO REMOVE
       this.destructionListeners.forEach((callback) => {
         callback();
@@ -35,6 +35,8 @@ abstract class Entity {
       this.onDestroyedEvent();
     }
   }
+
+  public abstract setOwner(newOwnerId: string);
 
   public abstract onDestroyedEvent();
   public abstract isDamagable();

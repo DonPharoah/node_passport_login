@@ -142,4 +142,6 @@ export class Building extends Entity implements Damagable {
   public hydratePresetData(presetType: BuildingPresetConstants) {
     this.preset = { ...buildingPresets[presetType] };
   }
+
+  public getName = () => `${this.preset.name} ${this.currentHealth}/${this.preset.maxHealth}`;
 }

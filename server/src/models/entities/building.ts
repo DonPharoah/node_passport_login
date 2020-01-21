@@ -5,18 +5,32 @@ import Entity from './entity';
 import { Bounds, Composite, Events as MatterEvents } from 'matter-js';
 import Unit from './unit';
 import ServerScene from '../../scenes/serverScene';
+import buildingPresets from '../schemas/buildings/buildingPresets';
+import { BuildingSchema } from '../schemas/buildings/buildingSchema';
+// export declare type BuildingPresetConstants = 'HOME_BASE' | 'BARRACKS' | 'MINER' | 'REPAIR_DRONE_FACTORY';
+export type BuildingPresetConstants = typeof Building.PresetConstants;
 
 class Building extends Entity {
+  public static readonly PresetConstants: 'HOME_BASE' | 'BARRACKS' | 'MINER' | 'REPAIR_DRONE_FACTORY';
   public readonly body: Body;
   public readonly range: Body;
-  public readonly ownerId: string;
+  public preset: BuildingSchema;
 
-  constructor(scene: ServerScene, position: Vector, radius: number, ownerId: string) {
+  constructor(
+    scene: ServerScene,
+    presetType: BuildingPresetConstants,
+    position: Vector,
+    radius: number,
+    ownerId: string
+  ) {
     super();
     const { x, y } = position;
     const seed = getSeed();
-    this.ownerId = ownerId;
     this.id = seed.generate();
+
+    this.hydratePresetData(presetType);
+    this.currentHealth = this.preset.maxHealth;
+
     this.body = Bodies.circle(x, y, radius, { isStatic: true, isSensor: false });
     //this.range = Bodies.circle(x, y, radius, { isStatic: true, isSensor: false });
     // @ts-ignore
@@ -37,6 +51,22 @@ class Building extends Entity {
   public isDamagable(): boolean {
     return true;
   }
-  //public onCollision(entity: Unit) {}
+
+  public hydratePresetData(presetType: BuildingPresetConstants) {
+    this.preset = { ...buildingPresets[presetType] };
+  }
+
+  public issueCommand(
+    scene: ServerScene,
+    commandingBuilding: Building,
+    buildingTargeted: Building,
+    position: { x; y }
+  ) {
+    this.preset.command(scene, commandingBuilding, buildingTargeted, position);
+  }
+
+  public setOwner(nweOwnerId: string) {
+    this.ownerId = nweOwnerId;
+  }
 }
 export default Building;

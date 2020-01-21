@@ -13,6 +13,7 @@ export abstract class Entity extends Phaser.GameObjects.GameObject implements Se
   public healthBar: GameObjects.Graphics;
   public healthBarWidth: number;
   public healthBarHeight: number;
+  private destructionListeners: [] = []; // Possibly only for selection
 
   constructor(scene: Phaser.Scene, type: string, ownerId: string, id: string) {
     super(scene, type);
@@ -25,5 +26,8 @@ export abstract class Entity extends Phaser.GameObjects.GameObject implements Se
   public abstract redrawHealthBar(): void;
   public abstract setHealth(newHealth: number): void;
   public abstract remove();
+  public abstract getName(): string;
+
   public addDestructionListener(callback: () => {}) {}
+  public removeDestructionListener() {}
 }

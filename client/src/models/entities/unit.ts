@@ -102,8 +102,7 @@ export class Unit extends Entity {
   }
 
   public remove() {
-    this.healthBar.destroy();
-    this.shape.destroy();
+    this.container.destroy();
     this.destroy();
   }
 
@@ -114,4 +113,6 @@ export class Unit extends Entity {
   public hydratePresetData(presetType: UnitPresetConstants) {
     this.preset = { ...unitPresets[presetType] };
   }
+
+  public getName = () => `${this.preset.name} ${this.currentHealth}/${this.preset.maxHealth}`;
 }

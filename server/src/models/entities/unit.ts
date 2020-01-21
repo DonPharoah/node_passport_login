@@ -8,25 +8,17 @@ class Unit extends Entity {
   public readonly body: Body;
   public readonly range: Body;
   private target: Building;
-  public readonly ownerId: string;
   private unitAI: UnitAI;
   private friendsInLOS = {};
   private enemiesInLOS = {};
   private attackTarget: Entity;
   private attackTimer;
 
-  constructor(
-    scene: ServerScene,
-    position: Vector,
-    radius,
-    ownerId: string,
-    target: Building,
-    returnTarget?: Building
-  ) {
+  constructor(scene: ServerScene, position: Vector, radius, target: Building, returnTarget?: Building) {
     super();
     const { x, y } = position;
     const seed = getSeed();
-    this.ownerId = ownerId;
+    this.id = seed.generate();
     this.body = Bodies.circle(x, y, radius, { isSensor: true, frictionAir: 0 });
     // @ts-ignore
     this.body.ownerEntity = this;
@@ -111,7 +103,7 @@ class Unit extends Entity {
         scene.updateEntityHealth(this.attackTarget, this);
       }, 1000);
       this.attackTarget.addDestructionCallback(() => {
-        //clearInterval(this.attackTimer);
+        clearInterval(this.attackTimer);
       });
     }
   }
@@ -123,6 +115,10 @@ class Unit extends Entity {
   }
   public isDamagable(): boolean {
     return true;
+  }
+  public setOwner(newOwnerId: string) {
+    this.ownerId = newOwnerId;
+    this.removeAttackTarget();
   }
 } // end of Unit class
 
