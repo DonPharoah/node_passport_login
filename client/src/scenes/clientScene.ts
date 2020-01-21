@@ -6,6 +6,7 @@ import { Events } from '../models/schemas/eventConstants';
 import { Utils } from '../utils/utils';
 import * as io from 'socket.io-client';
 import { Entity } from '../models/entities/entity';
+import { Input } from 'phaser';
 
 class ClientScene extends Phaser.Scene {
   private isConnected: boolean = false;
@@ -163,32 +164,36 @@ class ClientScene extends Phaser.Scene {
       let worldY = pointer.worldY;
       let uiScene = Utils.uiScene(this.game);
 
-      //Check for entities under cursor
-      if (this.mouseOvers.length == 1) {
-        // Cursor is over single entity
+      const mouseOverSelected = this.currentSelected.filter((selected) =>
+        this.mouseOvers.includes(selected.entity)
+      );
+      const isNoneSelected = mouseOverSelected.length === 0;
+
+      if (this.mouseOvers.length > 0) {
+        // Cursor over single entity
+
         if (this.currentSelected.length > 0) {
           // Currently selecting entity, so check if cursor is over selected
-          if (this.mouseOvers[0] === this.currentSelected[0].entity) {
-            // cursor is over selected entity, so deselect
-            this.deselectAllEntities();
+          this.mouseOversIndex = 0;
+
+          if (this.keySHIFT.isDown) {
+            if (isNoneSelected) {
+              this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
+            } else {
+              this.deselectEntity(
+                this.currentSelected.find((selected) => selected.entity === mouseOverSelected[0].entity)
+              );
+            }
           } else {
-            // cursor is over unselected entity, so deselect current and select new
-            this.mouseOversIndex = 0;
             this.deselectAllEntities();
             this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
           }
-        } else {
+
           // Currently selecting nothing, so select
-          this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
+        } else {
+          if (isNoneSelected) this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
         }
-      } else if (this.mouseOvers.length > 1) {
         // Cursor is over multiple entities, so deselect current entity
-        this.deselectAllEntities();
-        // and scroll through entities under cursor
-        this.mouseOversIndex < this.mouseOvers.length - 1
-          ? this.mouseOversIndex++
-          : (this.mouseOversIndex = 0);
-        this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
       } else {
         // Cursor is not over entity
         this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
@@ -474,6 +479,7 @@ class ClientScene extends Phaser.Scene {
   public selectEntity(selectedEntity: Entity) {
     const entity = selectedEntity;
     const circle = this.addSelectionCircle(entity.getPosition());
+<<<<<<< HEAD
     this.currentSelected[0] = { entity, circle };
     Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
@@ -483,6 +489,13 @@ class ClientScene extends Phaser.Scene {
     this.currentSelected.forEach((entity) => {
       this.deselectEntity(entity);
     });
+=======
+    this.currentSelected.push({ entity, circle });
+  }
+
+  public deselectAllEntities() {
+    this.currentSelected.forEach((deselect) => this.deselectEntity(deselect));
+>>>>>>> 24739b407078ebd7d74c075d77b6a007bad63c49
     this.currentSelected = [];
     Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
@@ -494,6 +507,7 @@ class ClientScene extends Phaser.Scene {
       (selection) => selection.entity !== selectedEntity.entity
     );
     selectedEntity.circle.destroy();
+<<<<<<< HEAD
     let deleteEntity = selectedEntity.entity;
     // current.entity.deselectedEvent();
     // current.entity.destroy();
@@ -507,6 +521,11 @@ class ClientScene extends Phaser.Scene {
       displayText = displayText + `${selection.entity.getName()} `;
     });
     Utils.uiScene(this.game).setTitleText(displayText);
+=======
+    this.currentSelected = this.currentSelected.filter(
+      (deselect) => deselect.entity !== selectedEntity.entity
+    );
+>>>>>>> 24739b407078ebd7d74c075d77b6a007bad63c49
   }
 }
 export let getClientSceneInstance;
