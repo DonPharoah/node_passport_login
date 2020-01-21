@@ -178,7 +178,7 @@ class ClientScene extends Phaser.Scene {
 
           if (this.keySHIFT.isDown) {
             if (isNoneSelected) {
-              this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
+              this.selectEntity(this.mouseOvers[0]);
             } else {
               this.deselectEntity(
                 this.currentSelected.find((selected) => selected.entity === mouseOverSelected[0].entity)
@@ -186,12 +186,12 @@ class ClientScene extends Phaser.Scene {
             }
           } else {
             this.deselectAllEntities();
-            this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
+            this.selectEntity(this.mouseOvers[0]);
           }
 
           // Currently selecting nothing, so select
         } else {
-          if (isNoneSelected) this.selectEntity(this.mouseOvers[this.mouseOversIndex]);
+          if (isNoneSelected) this.selectEntity(this.mouseOvers[0]);
         }
         // Cursor is over multiple entities, so deselect current entity
       } else {
@@ -479,8 +479,7 @@ class ClientScene extends Phaser.Scene {
   public selectEntity(selectedEntity: Entity) {
     const entity = selectedEntity;
     const circle = this.addSelectionCircle(entity.getPosition());
-<<<<<<< HEAD
-    this.currentSelected[0] = { entity, circle };
+    this.currentSelected.push({ entity, circle });
     Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
   }
@@ -489,13 +488,6 @@ class ClientScene extends Phaser.Scene {
     this.currentSelected.forEach((entity) => {
       this.deselectEntity(entity);
     });
-=======
-    this.currentSelected.push({ entity, circle });
-  }
-
-  public deselectAllEntities() {
-    this.currentSelected.forEach((deselect) => this.deselectEntity(deselect));
->>>>>>> 24739b407078ebd7d74c075d77b6a007bad63c49
     this.currentSelected = [];
     Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
@@ -507,7 +499,6 @@ class ClientScene extends Phaser.Scene {
       (selection) => selection.entity !== selectedEntity.entity
     );
     selectedEntity.circle.destroy();
-<<<<<<< HEAD
     let deleteEntity = selectedEntity.entity;
     // current.entity.deselectedEvent();
     // current.entity.destroy();
@@ -521,11 +512,6 @@ class ClientScene extends Phaser.Scene {
       displayText = displayText + `${selection.entity.getName()} `;
     });
     Utils.uiScene(this.game).setTitleText(displayText);
-=======
-    this.currentSelected = this.currentSelected.filter(
-      (deselect) => deselect.entity !== selectedEntity.entity
-    );
->>>>>>> 24739b407078ebd7d74c075d77b6a007bad63c49
   }
 }
 export let getClientSceneInstance;
