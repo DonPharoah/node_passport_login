@@ -59,9 +59,10 @@ class Building extends Entity {
   public issueCommand(
     scene: ServerScene,
     commandingBuilding: Building,
-    buildingTargeted: Building,
+    buildingTargeted: Entity,
     position: { x; y }
   ) {
+    console.log(`COMMANDING TO ${buildingTargeted.id}`);
     this.preset.command(scene, commandingBuilding, buildingTargeted, position);
   }
 

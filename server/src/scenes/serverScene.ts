@@ -14,6 +14,7 @@ import Unit from '../models/entities/unit';
 import { Events } from '../models/schemas/eventConstants';
 import Entity from '../models/entities/entity';
 import buildingPresets from '../models/schemas/buildings/buildingPresets';
+import { BuildingPresetConstants } from '../models/schemas/buildings/buildingSchema';
 
 class ServerScene {
   public playersList: Players = {};
@@ -159,11 +160,14 @@ class ServerScene {
       });
       socket.on(Events.ISSUE_UNIT_COMMAND, () => {});
 
-      socket.on(Events.PLAYER_CONSTRUCT_BUILDING, (data: { x: number; y: number }) => {
-        const { x, y } = data;
-        const newBuilding = new Building(this, 'BARRACKS', { x, y }, 30, socket.id);
-        this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED, socket.id);
-      });
+      socket.on(
+        Events.PLAYER_CONSTRUCT_BUILDING,
+        (data: { x: number; y: number; type: BuildingPresetConstants }) => {
+          const { x, y, type } = data;
+          const newBuilding = new Building(this, type, { x, y }, 30, socket.id);
+          this.addEntityToSceneAndNotify(this.buildings, newBuilding, Events.NEW_BUILDING_ADDED, socket.id);
+        }
+      );
 
       socket.on(
         Events.PLAYER_ISSUE_COMMAND,
@@ -194,7 +198,8 @@ class ServerScene {
             this.addEntityToSceneAndNotify(this.units, newUnit, Events.NEW_UNIT_ADDED, socket.id);
             targetBuilding.preset.command(newUnit);
           }*/
-          targetBuilding.issueCommand(this, selectedBuilding, targetBuilding, { x, y });
+
+          selectedBuilding.issueCommand(this, selectedBuilding, targetBuilding, { x, y });
         }
       );
     });

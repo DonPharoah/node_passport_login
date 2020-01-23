@@ -11,7 +11,12 @@ interface BuildingSchema {
   shape: 'TRIANGLE' | 'SQUARE' | 'RECTANGLE' | 'CIRCLE';
   maxHealth: number;
   update: () => void;
-  command: (scene: ServerScene, issuingEntity: Entity, targetEntity: Entity, clickPosition: { x; y }) => void;
+  command: (
+    scene: ServerScene,
+    commandingEntity: Building,
+    targetEntity: Entity,
+    clickPosition: { x; y }
+  ) => void;
   testHandler: () => void;
 }
 

@@ -4,24 +4,34 @@ import ServerScene from '../../../scenes/serverScene';
 import { BuildingPresets } from './buildingSchema';
 import Entity from '../../entities/entity';
 
+const NO_COMMAND = (
+  scene: ServerScene,
+  commandingEntity: Building,
+  targetEntity: Entity,
+  position: { x; y }
+) => {
+  console.log('NO COMMAND');
+};
+
 const FACTORY_BUILDING_CREATE_UNIT = (
   scene: ServerScene,
-  commandingBuilding: Building,
-  buildingTargeted: Building
+  commandingEntity: Building,
+  targetEntity: Entity,
+  position: { x; y }
 ) => {
-  let factoryBuilding: any = commandingBuilding;
+  let factoryBuilding: any = commandingEntity;
   const createUnit = () => {
     // create new Drone and push it to list
     const newUnit = new Unit(
       scene,
-      commandingBuilding.body.position,
+      commandingEntity.body.position,
       50,
-      buildingTargeted,
-      commandingBuilding
+      targetEntity as Building,
+      commandingEntity
     );
     factoryBuilding.drones.push(newUnit);
     // add new drone to scene
-    scene.addEntityToSceneAndNotify(scene.units, newUnit, Events.NEW_UNIT_ADDED, commandingBuilding.ownerId);
+    scene.addEntityToSceneAndNotify(scene.units, newUnit, Events.NEW_UNIT_ADDED, commandingEntity.ownerId);
     // building listen for drone's destruction and remove from list
     newUnit.addDestructionCallback((destroyedDrone: Unit) => {
       factoryBuilding.drones = factoryBuilding.drones.filter(
@@ -29,25 +39,28 @@ const FACTORY_BUILDING_CREATE_UNIT = (
       );
     });
     // drone listen for command Buildings destruction and self desruct for now.
-    commandingBuilding.addDestructionCallback(() => {
+    commandingEntity.addDestructionCallback(() => {
       factoryBuilding.drones.forEach((drone: Unit) => {
         drone.destroy();
       });
     });
   };
 
+  const sendAllDrones = () => {
+    factoryBuilding.drones.forEach((drone) => {
+      drone.designateFollowTarget(scene, targetEntity, commandingEntity);
+    });
+  };
+
   if (factoryBuilding.drones) {
     if (factoryBuilding.drones.length < 5) {
       createUnit();
-    } else {
-      factoryBuilding.drones.forEach((drone) => {
-        drone.designateFollowTarget(scene, buildingTargeted, commandingBuilding);
-      });
     }
   } else {
     factoryBuilding.drones = [];
     createUnit();
   }
+  sendAllDrones();
 };
 
 let buildingPresets: BuildingPresets = {
@@ -85,7 +98,7 @@ let buildingPresets: BuildingPresets = {
     maxHealth: 400,
     shape: 'TRIANGLE',
     update: function() {},
-    command: function() {},
+    command: NO_COMMAND,
     testHandler: function() {
       console.log(`click from building: ${this.name}`);
     }

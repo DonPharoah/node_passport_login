@@ -196,7 +196,9 @@ class ClientScene extends Phaser.Scene {
         // Cursor is over multiple entities, so deselect current entity
       } else {
         // Cursor is not over entity
-        this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY });
+        if (this.keySHIFT.isDown)
+          this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY, type: 'BARRACKS' });
+        else this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY, type: 'MINER' });
       }
     }
   }
