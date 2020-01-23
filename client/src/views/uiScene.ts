@@ -4,7 +4,7 @@ import { createBuildingPanel } from './modules/buildingPanel';
 import multipurposePanelManager from './modules/multipurposePanel';
 import { initOverlayTexts } from './modules/overlayTexts';
 import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
-import Entity from '../models/entities/entity';
+import { Entity } from '../models/entities/entity';
 type rexUi = UIPlugin;
 
 class UIScene extends Phaser.Scene {

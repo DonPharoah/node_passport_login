@@ -6,7 +6,7 @@ import { Bounds, Composite, Events as MatterEvents } from 'matter-js';
 import Unit from './unit';
 import ServerScene from '../../scenes/serverScene';
 import buildingPresets from '../schemas/buildings/buildingPresets';
-import { BuildingSchema } from '../schemas/buildings/buildingSchema';
+// import { BuildingDefaults } from '../schemas/buildings/buildingDefaults';
 // export declare type BuildingPresetConstants = 'HOME_BASE' | 'BARRACKS' | 'MINER' | 'REPAIR_DRONE_FACTORY';
 export type BuildingPresetConstants = typeof Building.PresetConstants;
 
@@ -14,7 +14,7 @@ class Building extends Entity {
   public static readonly PresetConstants: 'HOME_BASE' | 'BARRACKS' | 'MINER' | 'REPAIR_DRONE_FACTORY';
   public readonly body: Body;
   public readonly range: Body;
-  public preset: BuildingSchema;
+  public preset: BuildingDefaults;
 
   constructor(
     scene: ServerScene,
@@ -62,7 +62,7 @@ class Building extends Entity {
     buildingTargeted: Building,
     position: { x; y }
   ) {
-    this.preset.command(scene, commandingBuilding, buildingTargeted, position);
+    this.preset.rightClickCommand(scene, commandingBuilding, buildingTargeted, position);
   }
 
   public setOwner(nweOwnerId: string) {

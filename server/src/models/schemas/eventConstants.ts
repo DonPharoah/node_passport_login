@@ -5,7 +5,7 @@ export const enum Events {
   NEW_BUILDING_ADDED = 'newBuildingAdded',
   BUILDING_REMOVED = 'buildingRemoved',
   UNIT_REMOVED = 'unitRemoved',
-  CONNECTION = 'connection',
+  CONNECTION_ACKNOWLEDGED = 'connectionAcknowledged',
   DISCONNECT = 'disconnect',
   PING_EVENT = 'pingEvent',
   PONG_EVENT = 'pongEvent',

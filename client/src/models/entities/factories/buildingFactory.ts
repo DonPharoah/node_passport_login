@@ -3,7 +3,7 @@ import buildingPresets from '../../schemas/buildings/buildingPresets';
 import ClientScene from '../../../scenes/clientScene';
 
 export class BuildingFactory {
-  public static creatBuilding(
+  public static createBuilding(
     presetType: BuildingPresetConstants,
     scene: ClientScene,
     position: { x: number; y: number },

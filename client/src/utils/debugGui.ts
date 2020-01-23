@@ -33,7 +33,8 @@ const debugGuiOptions = function(context: ClientScene) {
   this.setUserName = () => context.registry.set('userName', this.genericInput);
   this.getAllUsers = () => context.socket.emit(Events.GET_ALL_USER_NAMES);
   this.connect = () => context.socket.connect();
-  this.disconnect = () => context.socket.emit(Events.PLAYER_DISCONNECTED);
+  // this.disconnect = () => context.socket.emit(Events.PLAYER_DISCONNECTED);
+  this.disconnect = () => context.socket.disconnect();
   this.startPingServer = () => context.startPingServer();
   this.stopPingServer = () => context.stopPingServer();
 };
