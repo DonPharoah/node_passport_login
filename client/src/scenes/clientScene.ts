@@ -39,13 +39,16 @@ class ClientScene extends Phaser.Scene {
   public keySHIFT: Phaser.Input.Keyboard.Key;
 
   constructor() {
-    super({ key: 'mainScene', visible: true, active: true });
+    super({ key: 'clientScene', visible: true, active: true });
   }
 
   public preload() {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
     this.load.image('selectionCircle', '../../assets/images/SelectionCircle.png');
+    this.scene.scene.events.on('create', () => {
+      this.handleSockets();
+    });
   }
 
   public create() {
@@ -234,20 +237,28 @@ class ClientScene extends Phaser.Scene {
     this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
     this.socket = io.connect('http://localhost:4000');
 
+    this.socket.on('connect', (player: Player) => {
+      console.log('First connection reached server.');
+    });
+
+    this.socket.on(Events.CONNECTION_ACKNOWLEDGED, (player: Player) => {
+      console.log(`Connection okayed by server at: ${new Date()}`);
+      uiScene.showOverlayMessage(`Player: ${player.id} connected.`);
+      this.playersList[player.id] = player;
+    });
+
     this.socket.on(Events.PLAYER_INIT, (playersList: Players) => {
       // code to run when server processes that the player has connected
+      console.log('Initializing playerList data...');
       this.playersList = playersList;
       this.playerColor = playersList[this.socket.id].color;
     });
-    this.socket.on(Events.CONNECTION, (player: Player) => {
-      console.log('YOU CONNECTED');
-      uiScene.showOverlayMessage(`Player: ${player} connected.`);
-      this.playersList[player.id] = player;
-    });
+
     this.socket.on(Events.PLAYER_DISCONNECTED, (player: Player) => {
       uiScene.showOverlayMessage(`Player: ${player.name} disconnected.`);
       delete this.playersList[player.id];
     });
+
     this.socket.on(
       Events.UPDATE_PLAYERS_LIST,
       (playersData: {
@@ -265,13 +276,16 @@ class ClientScene extends Phaser.Scene {
     this.socket.on(Events.ERROR_STATUS, (errorMessage: string) => {
       uiScene.showOverlayError(errorMessage);
     });
+
     this.socket.on(Events.GET_ALL_USER_NAMES, (userNames: string[]) => {
       console.log(userNames);
     });
+
     this.socket.on(Events.CHANGE_NAME_OK, (newName: string) => {
       this.data.set('userName', newName);
       uiScene.showOverlayMessage(`Server allowed name change to: ${newName}`);
     });
+
     this.socket.on(Events.SERVER_STATUS_UPDATE, (unitPositions: { position: { x; y }; id: string }[]) => {
       unitPositions.forEach((current) => {
         const { position, id } = current;
@@ -291,6 +305,7 @@ class ClientScene extends Phaser.Scene {
         this.howie.play();
       }
     );
+
     this.socket.on(
       Events.NEW_BUILDING_ADDED,
       (newBuilding: { position: { x; y }; id: string; ownerId: string; type: any; targetId?: string }) => {
@@ -304,10 +319,12 @@ class ClientScene extends Phaser.Scene {
       Utils.removeBuildingFromScene(this, removeBuildingId);
       uiScene.showOverlayMessage('Building removed.');
     });
+
     this.socket.on(Events.UNIT_REMOVED, (removeUnitId: string) => {
       Utils.removeUnitFromScene(this, removeUnitId);
       this.wilhelm.play();
     });
+
     this.socket.on(
       Events.LOAD_ALL_BUILDINGS,
       (buildings: { position: { x; y }; id: string; ownerId: string; health: number; type: any }[]) => {
@@ -318,6 +335,7 @@ class ClientScene extends Phaser.Scene {
         });
       }
     );
+
     this.socket.on(Events.LOAD_ALL_UNITS, (units: { position: { x; y }; id: string; ownerId: string }[]) => {
       units.forEach((unit) => {
         Utils.addNewUnitToScene(this, unit);
@@ -327,13 +345,16 @@ class ClientScene extends Phaser.Scene {
     //   console.log(newEntity);
     //   //this.addNewBuildingToScene(newEntity);
     // });
+
     this.socket.on(Events.DEBUG_MESSAGE, (message) => {
       // uiScene.appendToTextArea(message);
     });
+
     this.pingSocket.on(Events.PONG_EVENT, () => {
       let latency = Date.now() - this.pingStartTime;
       uiScene.showOverlayMessage(`latency: ${latency}ms`);
     });
+
     this.socket.on(Events.UPDATE_ENTITY_HEALTH, (uuid, health, callerUuid) => {
       let damagerEntity: Entity;
       Utils.findEntityByIdAndRun(this, callerUuid, (entity) => {

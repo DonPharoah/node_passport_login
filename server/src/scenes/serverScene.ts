@@ -93,21 +93,24 @@ class ServerScene {
 
   public handleSockets() {
     this.pingNamespace = this.io.of('/ping-namespace');
-    this.pingNamespace.on(Events.CONNECTION, (socket) => {
+    this.pingNamespace.on('connect', (socket) => {
       socket.on(Events.PING_EVENT, () => {
         socket.emit(Events.PONG_EVENT);
       });
     });
 
-    this.io.on(Events.CONNECTION, (socket) => {
-      console.log('user connected');
+    // this.io.on(Events.CONNECTION, (socket) => {
+    this.io.on('connect', (socket) => {
+      console.log('player connected at ' + new Date());
+      console.log(`current players: ${Object.keys(this.playersList).length}`);
       this.playersList[socket.id] = {
         id: socket.id,
         name: `Player${Math.round(Math.random() * 1000) + 1}`,
         color: ('00000' + ((Math.random() * (1 << 24)) | 0).toString(16)).slice(-6)
       };
       socket.emit(Events.PLAYER_INIT, this.playersList);
-      socket.broadcast.emit(Events.CONNECTION, this.playersList[socket.id]);
+      // socket.broadcast.emit(Events.CONNECTION, this.playersList[socket.id]);
+      this.io.emit(Events.CONNECTION_ACKNOWLEDGED, this.playersList[socket.id]);
       this.io.emit(Events.UPDATE_PLAYERS_LIST, {
         ownerId: socket.id,
         playersList: this.playersList,

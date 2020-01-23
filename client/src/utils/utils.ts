@@ -22,7 +22,7 @@ export class Utils {
   ): Building {
     const { position, id, ownerId, type } = options;
     // const newBuilding = new Building(scene, position, id, ownerId, 'BARRACKS');
-    const newBuilding = BuildingFactory.creatBuilding(type, scene, position, id, ownerId);
+    const newBuilding = BuildingFactory.createBuilding(type, scene, position, id, ownerId);
     newBuilding.rectangle.setStrokeStyle(3, parseInt(scene.playersList[ownerId].color, 16));
     scene.add.existing(newBuilding);
     return newBuilding;

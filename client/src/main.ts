@@ -39,23 +39,17 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 
 const game = new Phaser.Game(gameConfig);
 
-// put things here to load AFTER everything else has.
-window.onload = () => {
-  let clientScene = game.scene.getScene('mainScene') as ClientScene;
-  let canvas = document.querySelector('canvas');
-
-  clientScene.handleSockets();
+setTimeout(() => {
+  const clientScene = game.scene.getScene('clientScene') as ClientScene;
   try {
     initDebugGui_sceneCommands(clientScene);
   } catch (e) {
     console.log('Debug folder already exists');
   }
+}, 100);
 
-  // canvas.oncontextmenu = (e) => {
-  //   e.preventDefault();
-  // };
-};
-
+// put things here to load AFTER everything else has.
+// window.onload = () => {};
 /*
     ( uwu *pounces you* )
 
