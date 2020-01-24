@@ -46,6 +46,7 @@ class ClientScene extends Phaser.Scene {
     this.load.audio('howie', '../assets/sounds/howie-scream.mp3');
     this.load.audio('wilhelm', '../assets/sounds/wilhelm-scream.mp3');
     this.load.image('selectionCircle', '../../assets/images/SelectionCircle.png');
+    // Register listener to fire handleSockets once this scene's create() method has finished.
     this.scene.scene.events.on('create', () => {
       this.handleSockets();
     });
