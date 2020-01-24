@@ -70,21 +70,27 @@ function buildUnitCommand(scene: ServerScene, commandingBuilding: Building, buil
       buildingTargeted,
       commandingBuilding
     );
-    factoryBuilding.preset.drones = [];
-    factoryBuilding.preset.drones.push(newUnit);
+
+    factoryBuilding.drones.push(newUnit);
     // add new drone to scene
     scene.addEntityToSceneAndNotify(scene.units, newUnit, Events.NEW_UNIT_ADDED, commandingBuilding.ownerId);
     // building listen for drone's destruction and remove from list
     newUnit.addDestructionCallback((destroyedDrone: Unit) => {
-      factoryBuilding.preset.drones = factoryBuilding.preset.drones.filter(
+      factoryBuilding.drones = factoryBuilding.drones.filter(
         (currentDrone: Unit) => currentDrone !== destroyedDrone
       );
     });
     // drone listen for command Buildings destruction and self desruct for now.
     commandingBuilding.addDestructionCallback(() => {
-      factoryBuilding.preset.drones.forEach((drone: Unit) => {
+      factoryBuilding.drones.forEach((drone: Unit) => {
         drone.destroy();
       });
+    });
+  };
+
+  const sendUnit = () => {
+    factoryBuilding.drones.forEach((drone) => {
+      drone.designateFollowTarget(scene, buildingTargeted, commandingBuilding);
     });
   };
 
@@ -92,13 +98,12 @@ function buildUnitCommand(scene: ServerScene, commandingBuilding: Building, buil
     if (factoryBuilding.drones.length < 5) {
       createUnit();
     } else {
-      factoryBuilding.drones.forEach((drone) => {
-        drone.designateFollowTarget(scene, buildingTargeted, commandingBuilding);
-      });
     }
+    sendUnit();
   } else {
     factoryBuilding.drones = [];
     createUnit();
+    sendUnit();
   }
 }
 

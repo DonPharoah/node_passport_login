@@ -59,7 +59,7 @@ class Building extends Entity {
   public issueCommand(
     scene: ServerScene,
     commandingBuilding: Building,
-    buildingTargeted: Building,
+    buildingTargeted: Entity,
     position: { x; y }
   ) {
     this.preset.rightClickCommand(scene, commandingBuilding, buildingTargeted, position);
