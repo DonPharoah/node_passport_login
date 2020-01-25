@@ -15,6 +15,7 @@ import { Events } from '../models/schemas/eventConstants';
 import Entity from '../models/entities/entity';
 import buildingPresets from '../models/schemas/buildings/buildingPresets';
 import { BuildingPresetConstants } from '../models/schemas/buildings/buildingSchema';
+import DebugOverlay from '../utils/debugOverlay';
 
 class ServerScene {
   public playersList: Players = {};
@@ -29,6 +30,8 @@ class ServerScene {
   private ground: Body;
   private world: World;
 
+  public static debugOverlay: DebugOverlay;
+
   // public testUnit: Unit;
 
   constructor() {
@@ -42,6 +45,8 @@ class ServerScene {
     this.startPhysicsUpdate();
     this.startServerUpdateTick();
     this.handleCollisionEvents();
+    //DEBUG
+    ServerScene.debugOverlay = new DebugOverlay(this);
   }
 
   public addEntityToSceneAndNotify(group, newEntity, notifier: Events, socketId: string, targetId?: string) {
@@ -53,8 +58,7 @@ class ServerScene {
     if (newEntity instanceof Building) {
       entityType = newEntity.preset.presetType;
     }
-    console.log(`TYPE SERVER ${entityType}`);
-    //console.log(`Entity '${newEntity.id}' added at: ${position.x}, ${position.y}`);
+
     group[newEntity.id] = newEntity;
     World.add(this.world, newEntity.body);
     this.io.emit(notifier, {
@@ -89,6 +93,18 @@ class ServerScene {
     });
     clientSocket.emit(Events.LOAD_ALL_BUILDINGS, buildingsToSend);
     clientSocket.emit(Events.LOAD_ALL_UNITS, unitsToSend);
+  }
+
+  public sendDebugTooltipForClients(entity: Entity, text: string[]) {
+    let debugTooltipText = '';
+    text.forEach((string) => {
+      debugTooltipText += string + '\n';
+    });
+
+    this.io.emit(Events.DEBUG_SET_TOOLTIP, {
+      entityID: entity.id,
+      text: debugTooltipText
+    });
   }
 
   public handleSockets() {
@@ -174,20 +190,20 @@ class ServerScene {
 
       socket.on(
         Events.PLAYER_ISSUE_COMMAND,
-        (data: { x: number; y: number; selectedId: string; targetId: string }) => {
-          console.log(`From server: calling PLAYER_ISSUE_COMMAND`);
-
-          const { targetId, selectedId } = data;
+        (data: { x: number; y: number; selectedIds: string[]; targetId: string }) => {
+          const { targetId, selectedIds } = data;
           let x = 0,
             y = 0,
-            newUnit: Unit,
-            selectedBuilding,
+            selectedBuildings: Building[] = [],
             targetBuilding: Building;
-          try {
-            selectedBuilding = this.findBuildingById(selectedId);
-          } catch (e) {
-            console.log(e);
-          }
+
+          selectedIds.forEach((selectedId) => {
+            try {
+              selectedBuildings.push(this.findBuildingById(selectedId));
+            } catch (e) {
+              console.log(e);
+            }
+          });
 
           try {
             targetBuilding = this.findBuildingById(targetId);
@@ -202,7 +218,9 @@ class ServerScene {
             targetBuilding.preset.command(newUnit);
           }*/
 
-          selectedBuilding.issueCommand(this, selectedBuilding, targetBuilding, { x, y });
+          selectedBuildings.forEach((selectedBuilding) => {
+            selectedBuilding.issueCommand(this, selectedBuilding, targetBuilding, { x, y });
+          });
         }
       );
     });

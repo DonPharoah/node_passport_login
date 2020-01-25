@@ -29,7 +29,7 @@ export class Unit extends Entity {
     ownerId: string,
     presetType: UnitPresetConstants
   ) {
-    super(scene, 'unit', ownerId, id);
+    super(scene, position, 'unit', ownerId, id);
     // Object.assign(this, damageComponent);
     this.clientScene = scene;
     this.hydratePresetData(presetType);

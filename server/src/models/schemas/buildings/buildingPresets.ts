@@ -89,8 +89,9 @@ function buildUnitCommand(scene: ServerScene, commandingBuilding: Building, buil
   };
 
   const sendUnit = () => {
-    factoryBuilding.drones.forEach((drone) => {
-      drone.designateFollowTarget(scene, buildingTargeted, commandingBuilding);
+    factoryBuilding.drones.forEach((drone: Unit) => {
+      if (drone.isNotOrbiting(buildingTargeted))
+        drone.designateFollowTarget(scene, buildingTargeted, commandingBuilding);
     });
   };
 

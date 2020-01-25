@@ -46,9 +46,37 @@ abstract class Entity {
     }
   }
 
+  public is(checkedEntity: Entity): boolean {
+    return this.id === checkedEntity.id;
+  }
+  public isNot(checkedEntity: Entity): boolean {
+    return this.id !== checkedEntity.id;
+  }
+
   public abstract setOwner(newOwnerId: string);
 
   protected abstract onDestroyedEvent();
   public abstract isDamagable();
+
+  public abstract sendServerDebugData();
+
+  // COMPOSITES
+
+  //public isOrbitable = () => this.composites.orbitableComposite;
 }
 export default Entity;
+
+/*class OrbitableComposite {
+  orbiters: Unit[];
+
+  onUnitEnteredOrbit(unitEnteringOrbit: Unit) {
+    this.orbiters.push(unitEnteringOrbit);
+    //
+  }
+  onUnitLeftOrbit(unitLeavingOrbit: Unit) {
+    this.orbiters = this.orbiters.filter((orbiter) => {
+      orbiter !== unitLeavingOrbit;
+    });
+    //
+  }
+}*/

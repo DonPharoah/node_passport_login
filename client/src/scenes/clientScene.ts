@@ -6,7 +6,7 @@ import { Events } from '../models/schemas/eventConstants';
 import { Utils } from '../utils/utils';
 import * as io from 'socket.io-client';
 import { Entity } from '../models/entities/entity';
-import { Input } from 'phaser';
+import { Input, GameObjects } from 'phaser';
 
 class ClientScene extends Phaser.Scene {
   private isConnected: boolean = false;
@@ -27,7 +27,11 @@ class ClientScene extends Phaser.Scene {
   public buildings: Phaser.GameObjects.Group;
   public units: Phaser.GameObjects.Group;
   public mouseOvers: Entity[] = [];
-  public currentSelected: { entity: Entity; circle: Phaser.GameObjects.Image }[] = [];
+  public currentSelected: {
+    entity: Entity;
+    circle: Phaser.GameObjects.Image;
+    tooltip: GameObjects.Text;
+  }[] = [];
   public mouseOversIndex: number = 0;
   public playerColor: string;
   public playersList: Players = {};
@@ -161,6 +165,17 @@ class ClientScene extends Phaser.Scene {
     return selectionCircle;
   }
 
+  public addToolTip(entity: Entity): Phaser.GameObjects.Text {
+    const tooltip = entity.debugTooltip;
+    const { x: entityX, y: entityY } = entity.getPosition();
+    const x = entityX - tooltip.width / 2;
+    const y = entityY + (entity.shape as GameObjects.Rectangle).height;
+    tooltip.setPosition(x, y);
+    this.add.existing(tooltip);
+    entity.debugTooltip = tooltip;
+    return tooltip;
+  }
+
   public leftClickHandler(pointer: Phaser.Input.Pointer) {
     if (pointer.primaryDown) {
       let worldX = pointer.worldX;
@@ -210,11 +225,12 @@ class ClientScene extends Phaser.Scene {
     if (pointer.rightButtonDown()) {
       let worldX = pointer.worldX;
       let worldY = pointer.worldY;
+      const selectedIds: string[] = this.currentSelected.map((element) => element.entity.id);
       if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
         this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
           x: worldX,
           y: worldY,
-          selectedId: this.currentSelected[0].entity.id,
+          selectedIds: selectedIds,
           targetId: this.mouseOvers[0].id
         });
       }
@@ -368,12 +384,17 @@ class ClientScene extends Phaser.Scene {
       });
       this.updateDebugGui();
     });
+
+    this.socket.on(Events.DEBUG_SET_TOOLTIP, (data: { entityID: string; text: string }) => {
+      const { entityID, text } = data;
+      Utils.findEntityByIdAndRun(this, entityID, (entity) => entity.setDebugTooltip(text));
+    });
   }
 
-  public mouseOverEvent(objectMousedOver: Entity) {
+  public mouseOverEvent(entityMousedOver: Entity) {
     let uiScene = Utils.uiScene(this.game);
     uiScene.clearText();
-    this.mouseOvers.push(objectMousedOver);
+    this.mouseOvers.push(entityMousedOver);
     // uiScene.showMessage(`Selected: ${this.mouseOvers[0].id}`);
     this.mouseOvers.forEach((current) => {
       //
@@ -399,7 +420,7 @@ class ClientScene extends Phaser.Scene {
   // }
   public findBuildingInCurrentSelected(
     building: Building
-  ): { entity: Entity; circle: Phaser.GameObjects.Image } {
+  ): { entity: Entity; circle: Phaser.GameObjects.Image; tooltip: GameObjects.Text } {
     let foundEntity = this.currentSelected.find((current) => current.entity === building);
     if (foundEntity) {
       return foundEntity;
@@ -493,7 +514,8 @@ class ClientScene extends Phaser.Scene {
   public selectEntity(selectedEntity: Entity) {
     const entity = selectedEntity;
     const circle = this.addSelectionCircle(entity.getPosition());
-    this.currentSelected.push({ entity, circle });
+    const tooltip = this.addToolTip(entity);
+    this.currentSelected.push({ entity, circle, tooltip });
     Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
   }
@@ -507,12 +529,17 @@ class ClientScene extends Phaser.Scene {
     this.updateDebugGui();
   }
 
-  public deselectEntity(selectedEntity: { entity: Entity; circle: Phaser.GameObjects.Image }) {
-    console.log('destroying selection circle...');
+  public deselectEntity(selectedEntity: {
+    entity: Entity;
+    circle: Phaser.GameObjects.Image;
+    tooltip: GameObjects.Text;
+  }) {
     this.currentSelected = this.currentSelected.filter(
       (selection) => selection.entity !== selectedEntity.entity
     );
     selectedEntity.circle.destroy();
+    //selectedEntity.tooltip.destroy();
+    this.children.remove(selectedEntity.tooltip);
     let deleteEntity = selectedEntity.entity;
     // current.entity.deselectedEvent();
     // current.entity.destroy();

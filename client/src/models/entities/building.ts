@@ -2,6 +2,7 @@ import ClientScene from '../../scenes/clientScene';
 import { Utils } from '../../utils/utils';
 import { Entity } from './entity';
 import buildingPresets from '../schemas/buildings/buildingPresets';
+import { GameObjects, Game } from 'phaser';
 
 // export declare type BuildingPresetConstants = 'HOME_BASE' | 'BARRACKS' | 'MINER' | 'REPAIR_DRONE_FACTORY';
 export type BuildingPresetConstants = typeof Building.PresetConstants;
@@ -12,10 +13,9 @@ export class Building extends Entity implements Damagable {
   private static FILL_COLOR: number = 0xffffff;
   private static DEFAULT_COLOR: number = 0x888888;
   private static SELECTED_COLOR: number = 0x0000ff;
-  public healthBarHeight: number;
-  public healthBarWidth: number;
-  public currentHealth: number;
-  public healthBar: Phaser.GameObjects.Graphics;
+  //public healthBarHeight: number; Already in Entity base class
+  //public healthBarWidth: number;
+  //public currentHealth: number;
   public shape: Phaser.GameObjects.Rectangle;
   public clientScene: ClientScene;
   public preset: BuildingSchema;
@@ -27,7 +27,7 @@ export class Building extends Entity implements Damagable {
     ownerId: string,
     presetType: BuildingPresetConstants
   ) {
-    super(scene, 'building', ownerId, id);
+    super(scene, position, 'building', ownerId, id);
     const { x, y } = position;
     this.clientScene = scene;
     this.hydratePresetData(presetType);

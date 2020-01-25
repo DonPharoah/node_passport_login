@@ -1,4 +1,5 @@
 export const enum Events {
+  DEBUG_SET_TOOLTIP = 'debugSetTooltip',
   PLAYER_INIT = 'playerInit',
   UPDATE_PLAYERS_LIST = 'updatePlayersList',
   NEW_UNIT_ADDED = 'newUnitAdded',
