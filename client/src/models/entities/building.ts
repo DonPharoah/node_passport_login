@@ -2,7 +2,7 @@ import ClientScene from '../../scenes/clientScene';
 import { Utils } from '../../utils/utils';
 import { Entity } from './entity';
 import buildingPresets from '../schemas/buildings/buildingPresets';
-import { GameObjects, Game } from 'phaser';
+import { GameObjects, Game, Physics } from 'phaser';
 
 // export declare type BuildingPresetConstants = 'HOME_BASE' | 'BARRACKS' | 'MINER' | 'REPAIR_DRONE_FACTORY';
 export type BuildingPresetConstants = typeof Building.PresetConstants;
@@ -31,24 +31,7 @@ export class Building extends Entity implements Damagable {
     const { x, y } = position;
     this.clientScene = scene;
     this.hydratePresetData(presetType);
-    switch (this.preset.shape) {
-      case 'CIRCLE':
-        this.shape = scene.add.circle(x, y, 50, Building.FILL_COLOR);
-        break;
-      case 'RECTANGLE':
-        this.shape = scene.add.rectangle(x, y, 80, 50, Building.FILL_COLOR);
-        break;
-      case 'SQUARE':
-        this.shape = scene.add.rectangle(x, y, 50, 50, Building.FILL_COLOR);
-        break;
-      case 'TRIANGLE':
-        console.log('testing');
-        // this.shape = scene.add.rectangle(x, y, 80, 50, Building.FILL_COLOR);
-        this.shape = scene.add.triangle(x, y, 0, 40, 20, 0, 40, 40, Building.FILL_COLOR);
-        break;
-      default:
-        console.log('ya fucked up');
-    }
+    this.shape = Building.createBuildingShape(this.preset, scene, x, y);
     this.initHealthBar();
     this.shape.setInteractive();
     this.shape.setDataEnabled();
@@ -65,6 +48,24 @@ export class Building extends Entity implements Damagable {
     });
 
     scene.buildings.add(this);
+    //const zone = scene.add.circle(x, y, 50, Building.FILL_COLOR);
+    scene.physics.add.existing(this.shape, true);
+    scene.buildingPhysicsGroup.add(this.shape);
+  }
+
+  static createBuildingShape(buildingPreset: BuildingSchema, scene: ClientScene, x, y) {
+    switch (buildingPreset.shape) {
+      case 'CIRCLE':
+        return scene.add.circle(x, y, 50, Building.FILL_COLOR);
+      case 'RECTANGLE':
+        return scene.add.rectangle(x, y, 80, 50, Building.FILL_COLOR);
+      case 'SQUARE':
+        return scene.add.rectangle(x, y, 50, 50, Building.FILL_COLOR);
+      case 'TRIANGLE':
+        return scene.add.triangle(x, y, 0, 40, 20, 0, 40, 40, Building.FILL_COLOR);
+      default:
+        console.log('ya fucked up');
+    }
   }
 
   public selectedEvent() {

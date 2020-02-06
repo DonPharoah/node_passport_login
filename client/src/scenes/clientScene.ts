@@ -7,10 +7,15 @@ import { Utils } from '../utils/utils';
 import * as io from 'socket.io-client';
 import { Entity } from '../models/entities/entity';
 import { Input, GameObjects } from 'phaser';
+import {
+  ClientSceneMode,
+  BuildingPlacementClientSceneMode,
+  DefaultClientSceneMode
+} from './clientSceneStates';
+import buildingPresets from '../models/schemas/buildings/buildingPresets';
 
 class ClientScene extends Phaser.Scene {
   private isConnected: boolean = false;
-  private testBuilding: Building;
 
   public socket: SocketIOClient.Socket;
   public pingSocket: SocketIOClient.Socket;
@@ -25,6 +30,7 @@ class ClientScene extends Phaser.Scene {
   public wilhelm: Phaser.Sound.BaseSound;
   public starfield: Phaser.GameObjects.TileSprite;
   public buildings: Phaser.GameObjects.Group;
+  public buildingPhysicsGroup: Phaser.GameObjects.Group;
   public units: Phaser.GameObjects.Group;
   public mouseOvers: Entity[] = [];
   public currentSelected: {
@@ -41,6 +47,10 @@ class ClientScene extends Phaser.Scene {
   public keyD: Phaser.Input.Keyboard.Key;
   public keyESC: Phaser.Input.Keyboard.Key;
   public keySHIFT: Phaser.Input.Keyboard.Key;
+
+  public currentSceneMode: ClientSceneMode;
+
+  public BUILDING_PLACEMENT_RADIUS: number = 100;
 
   constructor() {
     super({ key: 'clientScene', visible: true, active: true });
@@ -60,6 +70,9 @@ class ClientScene extends Phaser.Scene {
     this.initGameVariables();
     this.initInputHandlers();
     this.setVariableObservers();
+    ClientSceneMode.initClientSceneStates(this);
+    this.currentSceneMode = ClientSceneMode.DEFAULT_MODE;
+    this.currentSceneMode.onEnterState();
   }
 
   public update() {
@@ -102,6 +115,7 @@ class ClientScene extends Phaser.Scene {
       classType: Phaser.GameObjects.Sprite,
       name: 'units'
     });
+    this.buildingPhysicsGroup = this.physics.add.staticGroup();
     this.mainCamera.ignore(this.viewportRect);
     // this.minimapCamera.ignore(this.units);
     // this.starfield = this.add.tileSprite(500, 500, 1000, 1000, 'starfield');
@@ -125,6 +139,12 @@ class ClientScene extends Phaser.Scene {
     this.keySHIFT = this.input.keyboard.addKey('SHIFT');
   }
 
+  public setClientSceneState(newClientSceneMode: ClientSceneMode) {
+    this.currentSceneMode.onExitState();
+    this.currentSceneMode = newClientSceneMode;
+    newClientSceneMode.onEnterState();
+  }
+
   public initInputHandlers() {
     this.input.setTopOnly(false);
     this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
@@ -138,8 +158,8 @@ class ClientScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       // prevent being able to click if over Minimap
       if (this.cameras.getCamerasBelowPointer(pointer).includes(this.minimapCamera) == false) {
-        this.leftClickHandler(pointer);
-        this.rightClickHandler(pointer);
+        this.currentSceneMode.leftClickHandler(pointer);
+        this.currentSceneMode.rightClickHandler(pointer);
       } else {
         this.minimapClickHandler(pointer);
       }
@@ -148,7 +168,20 @@ class ClientScene extends Phaser.Scene {
       if (this.cameras.getCamerasBelowPointer(pointer).includes(this.minimapCamera)) {
         this.minimapClickHandler(pointer);
       }
+      this.currentSceneMode.onCursorMove(pointer);
     });
+  }
+
+  public getGhostBuilding(x, y, buildingType: BuildingPresetConstants): Phaser.GameObjects.Rectangle {
+    return Building.createBuildingShape(buildingPresets[buildingType], this, x, y);
+  }
+
+  public getPlacementRestrictionCircle(
+    x,
+    y,
+    buildingType: BuildingPresetConstants
+  ): Phaser.GameObjects.Shape {
+    return this.add.circle(x, y, this.BUILDING_PLACEMENT_RADIUS, 0.05);
   }
 
   public addSelectionCircle(position: { x; y }): Phaser.GameObjects.Image {
@@ -175,67 +208,6 @@ class ClientScene extends Phaser.Scene {
     this.add.existing(tooltip);
     entity.debugTooltip = tooltip;
     return tooltip;
-  }
-
-  public leftClickHandler(pointer: Phaser.Input.Pointer) {
-    if (pointer.primaryDown) {
-      let worldX = pointer.worldX;
-      let worldY = pointer.worldY;
-      let uiScene = Utils.uiScene(this.game);
-
-      const mouseOverSelected = this.currentSelected.filter((selected) =>
-        this.mouseOvers.includes(selected.entity)
-      );
-      const isNoneSelected = mouseOverSelected.length === 0;
-
-      if (this.mouseOvers.length > 0) {
-        // Cursor over single entity
-
-        if (this.currentSelected.length > 0) {
-          // Currently selecting entity, so check if cursor is over selected
-          this.mouseOversIndex = 0;
-
-          if (this.keySHIFT.isDown) {
-            if (isNoneSelected) {
-              this.selectEntity(this.mouseOvers[0]);
-            } else {
-              this.deselectEntity(
-                this.currentSelected.find((selected) => selected.entity === mouseOverSelected[0].entity)
-              );
-            }
-          } else {
-            this.deselectAllEntities();
-            this.selectEntity(this.mouseOvers[0]);
-          }
-
-          // Currently selecting nothing, so select
-        } else {
-          if (isNoneSelected) this.selectEntity(this.mouseOvers[0]);
-        }
-        // Cursor is over multiple entities, so deselect current entity
-      } else {
-        // Cursor is not over entity
-        if (this.keySHIFT.isDown)
-          this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY, type: 'BARRACKS' });
-        else this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x: worldX, y: worldY, type: 'MINER' });
-      }
-    }
-  }
-
-  public rightClickHandler(pointer: Phaser.Input.Pointer) {
-    if (pointer.rightButtonDown()) {
-      let worldX = pointer.worldX;
-      let worldY = pointer.worldY;
-      const selectedIds: string[] = this.currentSelected.map((element) => element.entity.id);
-      if (this.mouseOvers.length > 0 && this.currentSelected.length > 0) {
-        this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
-          x: worldX,
-          y: worldY,
-          selectedIds: selectedIds,
-          targetId: this.mouseOvers[0].id
-        });
-      }
-    }
   }
 
   public minimapClickHandler(pointer: Phaser.Input.Pointer) {
@@ -392,6 +364,19 @@ class ClientScene extends Phaser.Scene {
     });
   }
 
+  public sendConstructBuildingEvent(x, y, type: BuildingPresetConstants) {
+    this.socket.emit(Events.PLAYER_CONSTRUCT_BUILDING, { x, y, type });
+  }
+
+  public sendPlayerCommandEvent(worldX, worldY, selectedIds: string[]) {
+    this.socket.emit(Events.PLAYER_ISSUE_COMMAND, {
+      x: worldX,
+      y: worldY,
+      selectedIds: selectedIds,
+      targetId: this.mouseOvers[0].id
+    });
+  }
+
   public mouseOverEvent(entityMousedOver: Entity) {
     let uiScene = Utils.uiScene(this.game);
     uiScene.clearText();
@@ -509,6 +494,7 @@ class ClientScene extends Phaser.Scene {
     }
     if (this.keyESC.isDown) {
       this.deselectAllEntities();
+      this.setClientSceneState(ClientSceneMode.DEFAULT_MODE);
     }
   }
 
