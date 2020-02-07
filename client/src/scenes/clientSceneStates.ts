@@ -148,7 +148,15 @@ export class BuildingPlacementClientSceneMode implements ClientSceneMode {
     this.placementRestrictionCircle.body = body;
     this.scene.physics.add.existing(this.placementRestrictionCircle);
 
-    this.checkPlacementRestrictions();
+    const collider: Physics.Arcade.Collider = this.scene.physics.add.overlap(
+      this.placementRestrictionCircle,
+      this.scene.buildingPhysicsGroup,
+      () => {
+        this.canBePlaced = false;
+        this.checkPlacementRestrictions();
+      }
+    );
+
     // WHY THE FUCK DOESN"T THIS WORK THE FIRST TIME
   }
   onExitState() {
@@ -174,13 +182,12 @@ export class BuildingPlacementClientSceneMode implements ClientSceneMode {
 
   private checkPlacementRestrictions() {
     // First call of overlap doesn't work, the building hitboxes seem to be offset.
+    // this.canBePlaced = !this.scene.physics.world.overlap(
+    //   this.placementRestrictionCircle,
+    //   this.scene.buildingPhysicsGroup
+    // );
 
-    this.canBePlaced = !this.scene.physics.world.overlap(
-      this.placementRestrictionCircle,
-      this.scene.buildingPhysicsGroup
-    );
-
-    if (this.canBePlaced) this.placementRestrictionCircle.setFillStyle(0xffffff, 0.1);
+    if (this.canBePlaced) this.placementRestrictionCircle.setFillStyle(0xffffff, 0.05);
     else this.placementRestrictionCircle.setFillStyle(0xff0000, 0.1);
   }
 
@@ -199,6 +206,10 @@ export class BuildingPlacementClientSceneMode implements ClientSceneMode {
   onCursorMove(pointer: Phaser.Input.Pointer) {
     this.ghostBuilding.setPosition(pointer.position.x, pointer.position.y);
     this.placementRestrictionCircle.setPosition(pointer.position.x, pointer.position.y);
+    this.canBePlaced = !this.scene.physics.world.overlap(
+      this.placementRestrictionCircle,
+      this.scene.buildingPhysicsGroup
+    );
     this.checkPlacementRestrictions();
   }
 }
