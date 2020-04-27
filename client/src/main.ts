@@ -45,7 +45,6 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(gameConfig);
-debugger;
 setTimeout(() => {
   const clientScene = game.scene.getScene('clientScene') as ClientScene;
   try {
