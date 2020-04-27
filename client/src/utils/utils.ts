@@ -88,6 +88,19 @@ export class Utils {
     return foundUnit as Unit;
   }
 
+  public static findUnitByIdAsync(scene: ClientScene, id: string): Promise<Unit> {
+    let unitArray = scene.units.getChildren();
+    return new Promise((resolve, reject) => {
+      let foundUnit = unitArray.find((currentUnit: Unit) => {
+        return currentUnit.id === id;
+      });
+      if (!foundUnit) {
+        reject(new Error(`Unit ${id} could not be found`));
+      }
+      resolve(foundUnit as Unit);
+    });
+  }
+
   public static findEntityByIdAndRun(
     scene: ClientScene,
     uuid: string,

@@ -20,8 +20,8 @@ let data = {
     { name: 'J' },
     { name: 'K' },
     { name: 'L' },
-    { name: 'M' }
-  ]
+    { name: 'M' },
+  ],
 };
 const createMainSizer = (uiScene: UIScene) => {
   mainSizer = uiScene.rexUI.add
@@ -30,9 +30,9 @@ const createMainSizer = (uiScene: UIScene) => {
       width: 800,
       anchor: {
         left: '0%',
-        bottom: '100%'
+        bottom: '100%',
       },
-      orientation: 'x'
+      orientation: 'x',
     })
     .addBackground(
       uiScene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222)

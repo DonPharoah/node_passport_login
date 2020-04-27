@@ -12,15 +12,15 @@ const createMultipurposePanel = (uiScene: UIScene) => {
       text: uiScene.add.text(0, 0, titleText, {
         fontSize: 18,
         fontFamily: 'Arial',
-        resolution: 2
-      })
+        resolution: 2,
+      }),
     });
     return title;
   };
   multipurposePanel = uiScene.rexUI.add
     .sizer({
       width: 400,
-      orientation: 'y'
+      orientation: 'y',
     })
     // .addBackground(uiScene.rexUI.add.roundRectangle(0, 0, 0, 0, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222))
     .add(createTitle('Title'), 0, 'left', 3, true, 'title')
@@ -60,7 +60,7 @@ const createMultipurposePanel = (uiScene: UIScene) => {
 const createInnerSizer = (uiScene: UIScene, options?: 'deleteDialog' | 'ffff') => {
   let innerSizer = uiScene.rexUI.add
     .sizer({
-      orientation: 'y'
+      orientation: 'y',
     })
     .addBackground(
       uiScene.rexUI.add.roundRectangle(0, 0, 2, 2, 0, COLOR_PRIMARY).setStrokeStyle(3, 0x352222)
@@ -79,19 +79,19 @@ const populateDeleteDialog = (uiScene: UIScene, innerSizer) => {
       fontSize: 18,
       fontFamily: 'Arial',
       resolution: 2,
-      wordWrap: { width: 300, useAdvancedWrap: false }
-    })
+      wordWrap: { width: 300, useAdvancedWrap: false },
+    }),
   });
   const buttons = uiScene.rexUI.add.buttons({
     anchor: {
       left: 'left+10',
-      centerY: 'center'
+      centerY: 'center',
     },
     orientation: 'x',
     buttons: [createButton(uiScene, 'Yes'), createButton(uiScene, 'No')],
-    space: 20
+    space: 20,
   });
-  buttons.on('button.click', function(button, index, pointer, event) {
+  buttons.on('button.click', function (button, index, pointer, event) {
     console.log(`Click button-${button.test}`);
   });
   innerSizer.addSpace(1);
@@ -106,13 +106,13 @@ const createButton = (uiScene: UIScene, text) => {
     height: 40,
     background: uiScene.rexUI.add.roundRectangle(0, 0, 0, 0, 0, COLOR_LIGHT).setStrokeStyle(2, 0x000000),
     text: uiScene.add.text(0, 0, text, {
-      fontSize: 18
+      fontSize: 18,
     }),
     test: 'heywuddup',
     space: {
       left: 15,
-      right: 10
-    }
+      right: 10,
+    },
   });
 };
 
@@ -137,5 +137,5 @@ export default {
   createMultipurposePanel,
   getMultipurposePanel,
   hidePanel,
-  showPanel
+  showPanel,
 };

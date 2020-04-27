@@ -1,13 +1,13 @@
 import * as Phaser from 'phaser';
+// import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
 import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
-// import UIPlugin from '../rex-ui/plugins/dist/rexuiplugin.min.js';
 import { initDebugGui_sceneCommands } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
-import TestScene from './views/testScene';
+// import TestScene from './views/testScene';
 
 // import { initGuiController } from './controllers/guiController';
-
+// window.onload = () => {
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
   input: { mouse: true },
@@ -18,27 +18,34 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    parent: 'game'
+    parent: 'game',
   },
   audio: {
-    disableWebAudio: true
+    disableWebAudio: true,
   },
   physics: {
     default: 'arcade',
     arcade: {
-      debug: false
-    }
+      debug: false,
+    },
   },
   scene: [ClientScene, UIScene],
   plugins: {
-    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI', sceneKey: 'rexUI' }]
+    scene: [
+      {
+        key: 'rexUI',
+        plugin: UIPlugin,
+        mapping: 'rexUI',
+        sceneKey: 'rexUI',
+      },
+    ],
   },
   parent: 'game',
-  backgroundColor: '#000'
+  backgroundColor: '#000',
 };
 
 const game = new Phaser.Game(gameConfig);
-
+debugger;
 setTimeout(() => {
   const clientScene = game.scene.getScene('clientScene') as ClientScene;
   try {
@@ -47,6 +54,7 @@ setTimeout(() => {
     console.log('Debug folder already exists');
   }
 }, 100);
+// };
 
 // put things here to load AFTER everything else has.
 // window.onload = () => {};

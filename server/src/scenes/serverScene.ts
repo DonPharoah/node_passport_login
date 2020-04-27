@@ -1,4 +1,4 @@
-import { getIo } from '../utils/server';
+import { getIo } from '../server';
 import { getSeed } from '../utils/seed';
 import {
   Bounds,
@@ -7,7 +7,7 @@ import {
   Engine,
   World,
   Bodies,
-  Body
+  Body,
 } from '../../externalLibraries/matter-dev.js';
 import Building from '../models/entities/building';
 import Unit from '../models/entities/unit';
@@ -23,7 +23,7 @@ class ServerScene {
   public buildings: Buildings = {};
 
   private io = getIo();
-
+  debugger;
   private pingNamespace: SocketIO.Namespace;
   private engine: Engine;
   private box: Body;
@@ -66,7 +66,7 @@ class ServerScene {
       id: newEntity.id,
       ownerId: newEntity.ownerId,
       type: entityType,
-      targetId: targetId
+      targetId: targetId,
     });
   }
 
@@ -103,7 +103,7 @@ class ServerScene {
 
     this.io.emit(Events.DEBUG_SET_TOOLTIP, {
       entityID: entity.id,
-      text: debugTooltipText
+      text: debugTooltipText,
     });
   }
 
@@ -122,7 +122,7 @@ class ServerScene {
       this.playersList[socket.id] = {
         id: socket.id,
         name: `Player${Math.round(Math.random() * 1000) + 1}`,
-        color: ('00000' + ((Math.random() * (1 << 24)) | 0).toString(16)).slice(-6)
+        color: ('00000' + ((Math.random() * (1 << 24)) | 0).toString(16)).slice(-6),
       };
       socket.emit(Events.PLAYER_INIT, this.playersList);
       // socket.broadcast.emit(Events.CONNECTION, this.playersList[socket.id]);
@@ -130,7 +130,7 @@ class ServerScene {
       this.io.emit(Events.UPDATE_PLAYERS_LIST, {
         ownerId: socket.id,
         playersList: this.playersList,
-        joinOrLeave: 1
+        joinOrLeave: 1,
       });
 
       this.notifyClientOfEntities(socket);
@@ -174,7 +174,7 @@ class ServerScene {
           newOwnerId: '123',
           oldOwnerId: socket.id,
           playersList: this.playersList,
-          joinOrLeave: 0
+          joinOrLeave: 0,
         });
       });
       socket.on(Events.ISSUE_UNIT_COMMAND, () => {});
@@ -236,7 +236,7 @@ class ServerScene {
   }
 
   private handleCollisionEvents() {
-    MatterEvents.on(this.engine, 'collisionStart', function(event) {});
+    MatterEvents.on(this.engine, 'collisionStart', function (event) {});
   }
 
   public findBuildingById(id: string): Building {
@@ -292,7 +292,7 @@ class ServerScene {
     this.playersList['123'] = {
       id: '123',
       name: `WORLD`,
-      color: 'dddddd'
+      color: 'dddddd',
     };
   }
   public initPhysics() {

@@ -3,7 +3,10 @@
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "typeRoots": ["node_modules/@types", "src/schemas"]
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "typeRoots": ["node_modules/@types/", "src/schemas"]
   },
-  "include": ["src/**/*"]
+  "include": ["**/*"]
 }
