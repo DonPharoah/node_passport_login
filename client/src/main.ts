@@ -5,6 +5,7 @@ import { initDebugGui_sceneCommands } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
 import TestScene from './views/testScene';
+import UIScenePhaser from './views/uiScenePhaser';
 
 // import { initGuiController } from './controllers/guiController';
 
@@ -18,23 +19,23 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    parent: 'game'
+    parent: 'game',
   },
   audio: {
-    disableWebAudio: true
+    disableWebAudio: true,
   },
   physics: {
     default: 'arcade',
     arcade: {
-      debug: false
-    }
+      debug: false,
+    },
   },
-  scene: [ClientScene, UIScene],
+  scene: [ClientScene, UIScenePhaser],
   plugins: {
-    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI', sceneKey: 'rexUI' }]
+    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI', sceneKey: 'rexUI' }],
   },
   parent: 'game',
-  backgroundColor: '#000'
+  backgroundColor: '#000',
 };
 
 const game = new Phaser.Game(gameConfig);
