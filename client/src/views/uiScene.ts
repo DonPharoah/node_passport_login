@@ -3,12 +3,13 @@ import { createBuildingPanel } from './modules/buildingPanel';
 // import { initMultipurposePanel, showPanel, hidePanel } from './modules/multipurposePanel';
 import multipurposePanelManager from './modules/multipurposePanel';
 import { initOverlayTexts } from './modules/overlayTexts';
-import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
+// import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
 import { Entity } from '../models/entities/entity';
-type rexUi = UIPlugin;
+// type rexUi = UIPlugin;
 
 class UIScene extends Phaser.Scene {
-  [rexUi: string]: rexUi;
+  // [rexUi: string]: rexUi;
+  [rexUi: string]: any;
   private mainSizer;
   private overlayTexts;
   constructor() {

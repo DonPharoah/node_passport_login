@@ -2,12 +2,14 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
+    "rootDir": "./src",
     "sourceMap": true,
-    "outDir": "dist",
-    "rootDir": "src",
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["node_modules/@types", "src/models/**/*"],
     "lib": ["es2015", "es2017", "es6"]
   },
-  "include": ["src/**/*"]
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "include": ["./src/**/*"]
 }

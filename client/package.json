@@ -5,6 +5,7 @@
   "main": "src/main.ts",
   "scripts": {
     "build:dev": "webpack-dev-server --watch --config webpack.dev.js",
+    "bundle-analyzer": "webpack --config webpack.dev.js --profile --json > stats.json",
     "build:prod": "webpack --config webpack.prod.js",
     "start": "npm run build:dev"
   },
@@ -19,9 +20,9 @@
   "author": "David, Matt",
   "license": "MIT",
   "dependencies": {
-    "@types/dat.gui": "^0.7.4",
-    "dat.gui": "^0.7.6",
-    "phaser": "^3.19.0",
+    "@types/dat.gui": "^0.7.5",
+    "dat.gui": "^0.7.7",
+    "phaser": "^3.22.0",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
@@ -29,13 +30,14 @@
     "@types/socket.io-client": "^1.4.32",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.1.1",
-    "fork-ts-checker-webpack-plugin": "^1.5.1",
-    "nodemon": "^1.19.3",
+    "fork-ts-checker-webpack-plugin": "^1.6.0",
+    "nodemon": "^1.19.4",
     "short-uuid": "^3.1.1",
-    "ts-loader": "^6.2.0",
-    "typescript": "^3.6.3",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.2"
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.8.3",
+    "webpack": "^4.43.0",
+    "webpack-bundle-analyzer": "^3.7.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
   }
 }

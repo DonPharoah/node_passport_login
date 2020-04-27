@@ -1,14 +1,18 @@
 import * as Phaser from 'phaser';
+// import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
 import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
-// import UIPlugin from '../rex-ui/plugins/dist/rexuiplugin.min.js';
 import { initDebugGui_sceneCommands } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
+<<<<<<< HEAD
 import TestScene from './views/testScene';
 import UIScenePhaser from './views/uiScenePhaser';
+=======
+// import TestScene from './views/testScene';
+>>>>>>> 048643597ff17a442012bf0a31fe82b53794a002
 
 // import { initGuiController } from './controllers/guiController';
-
+// window.onload = () => {
 const gameConfig: Phaser.Types.Core.GameConfig = {
   title: 'RTS Game',
   input: { mouse: true },
@@ -39,7 +43,6 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
 };
 
 const game = new Phaser.Game(gameConfig);
-
 setTimeout(() => {
   const clientScene = game.scene.getScene('clientScene') as ClientScene;
   try {
@@ -48,6 +51,7 @@ setTimeout(() => {
     console.log('Debug folder already exists');
   }
 }, 100);
+// };
 
 // put things here to load AFTER everything else has.
 // window.onload = () => {};
