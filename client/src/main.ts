@@ -4,12 +4,8 @@ import UIPlugin from '../vendorModules/rex-ui/templates/ui/ui-plugin';
 import { initDebugGui_sceneCommands } from './utils/debugGui';
 import ClientScene from './scenes/clientScene';
 import UIScene from './views/uiScene';
-<<<<<<< HEAD
 import TestScene from './views/testScene';
 import UIScenePhaser from './views/uiScenePhaser';
-=======
-// import TestScene from './views/testScene';
->>>>>>> 048643597ff17a442012bf0a31fe82b53794a002
 
 // import { initGuiController } from './controllers/guiController';
 // window.onload = () => {
