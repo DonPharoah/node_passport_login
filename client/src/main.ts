@@ -31,9 +31,6 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
     },
   },
   scene: [ClientScene, UIScenePhaser],
-  plugins: {
-    scene: [{ key: 'rexUI', plugin: UIPlugin, mapping: 'rexUI', sceneKey: 'rexUI' }],
-  },
   parent: 'game',
   backgroundColor: '#000',
 };

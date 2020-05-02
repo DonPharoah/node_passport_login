@@ -40,8 +40,8 @@ module.exports = {
   },
   // devtool: 'inline-source-map', // original I had, but *slowest*
   // devtool: 'eval', // fastest, but no line tracking for debugging
-  // devtool: 'cheap-module-eval-source-map', // more on webpack website under "devtool"
-  devtool: 'none', // more on webpack website under "devtool"
+  devtool: 'cheap-module-eval-source-map', // more on webpack website under "devtool"
+  //devtool: 'none', // more on webpack website under "devtool"
 
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],

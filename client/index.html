@@ -1,29 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RTS Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta http-equiv="cleartype" content="on" />
+    <style>
+      html,
+      body,
+      canvas {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script> -->
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>RTS Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta http-equiv="cleartype" content="on">
-  <style>
-    html,
-    body,
-    canvas {
-      margin: 0 !important;
-      padding: 0 !important;
-      overflow: hidden !important;
-    }
-  </style>
-  <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.min.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script> -->
-</head>
-
-<body>
-  <div id="content"></div>
-  <script src="./app.bundle.js"></script>
-</body>
-
+  <body>
+    <div id="content"></div>
+    <script src="./app.bundle.js"></script>
+  </body>
 </html>

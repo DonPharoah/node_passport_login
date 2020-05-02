@@ -5,6 +5,7 @@ import multipurposePanelManager from './modules/multipurposePanel';
 import { initOverlayTexts } from './modules/overlayTexts';
 import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
 import { Entity } from '../models/entities/entity';
+import Frame, { frameOptions } from './uiComponents/frame';
 type rexUi = UIPlugin;
 
 class UIScenePhaser extends Phaser.Scene {
@@ -27,10 +28,9 @@ class UIScenePhaser extends Phaser.Scene {
   create() {
     this.registry.set('userName', 'Default User Name');
     this.overlayTexts = initOverlayTexts(this);
-    //this.mainSizer = createMainSizer(this);
 
-    //this.addBuildingPanel();
     //this.addMultipurposePanel();
+    Frame.createYesNoPrompt(this, () => {});
 
     //setTimeout(() => this.mainSizer.layout(), 5000);
 
@@ -43,16 +43,19 @@ class UIScenePhaser extends Phaser.Scene {
 
   public addBuildingPanel() {}
 
+  public addFrame(options: frameOptions) {
+    const { width, height, x, y }: frameOptions = options;
+  }
+
   public addMultipurposePanel() {
-    /*this.mainSizer.add(
-      multipurposePanelManager.createMultipurposePanel(this),
-      0,
-      'center',
-      7,
-      true,
-      'multipurposePanel'
-    );
-    this.mainSizer.layout();*/
+    const options: frameOptions = {
+      x: 200,
+      y: 300,
+      width: 400,
+      height: 200,
+      verticalAlignment: 'bottom',
+    };
+    new Frame(this, options);
   }
 
   public clearMultipurposePanelContents() {
