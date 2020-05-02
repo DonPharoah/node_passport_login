@@ -15,7 +15,6 @@ class Component extends Phaser.GameObjects.Container {
   ): Phaser.GameObjects.Rectangle {
     const { x, y, width, height, fillColor, fillAlpha } = rectangle;
     const newRactangle = new Phaser.GameObjects.Rectangle(scene, x, y, width, height, fillColor, fillAlpha);
-    newRactangle.setOrigin(rectangle.originX, rectangle.originY);
     return newRactangle;
   }
 }

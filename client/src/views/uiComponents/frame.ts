@@ -14,7 +14,7 @@ export interface frameOptions {
 }
 
 class Frame extends Component {
-  private componentRow: Component[][] = [[], []];
+  private componentGrid: Component[][] = [[], []];
   private currentFormat: (...args) => void;
   private margins: number = 10;
 
@@ -76,42 +76,41 @@ class Frame extends Component {
   }
 
   private addComponentToRow(component: Component) {
-    this.componentRow[0].push(component);
+    this.componentGrid[1].push(component);
     this.currentFormat();
   }
 
   private formatRowByListing() {
-    const numberOfComponents = this.componentRow[0].length;
+    const numberOfComponents = this.componentGrid[0].length;
     var xPosition = this.margins;
     for (let i = 0; i < numberOfComponents; i++) {
-      const component: Component = this.componentRow[0][i];
+      const component: Component = this.componentGrid[0][i];
       const pad = 10;
       if (xPosition + pad + component.rectangle.width > this.rectangle.width) {
         this.currentFormat = this.formatRowByDivision;
         break;
       }
-      component.rectangle.setPosition(xPosition, component.rectangle.y);
+      component.setPosition(xPosition + component.rectangle.width / 2, component.rectangle.y);
       xPosition += component.rectangle.width + pad;
     }
   }
 
   private formatRowByDivision() {
-    const numberOfComponents = this.componentRow[0].length;
+    const numberOfComponents = this.componentGrid[0].length;
     const divisionWidth = this.rectangle.width / numberOfComponents;
     for (let i = 0; i < numberOfComponents; i++) {
-      const component: Component = this.componentRow[0][i];
-      component.rectangle.setPosition(divisionWidth * i + divisionWidth / 2, component.rectangle.y);
+      const component: Component = this.componentGrid[0][i];
+      component.setPosition(divisionWidth * i + divisionWidth / 2, component.rectangle.y);
       const maxWidth = 120;
       const pad = 20;
       const componentWidth = maxWidth < divisionWidth - pad ? maxWidth : divisionWidth - pad;
-      component.rectangle.setDisplaySize(componentWidth, component.rectangle.height);
+      component.setDisplaySize(componentWidth, component.rectangle.height);
     }
   }
 
   public addButton(buttonOptions: ButtonOptions): Button {
     const newButton = new Button(this.scene as UIScenePhaser, buttonOptions);
-    newButton.rectangle.setPosition(this.margins, this.margins);
-    this.add(newButton.rectangle);
+    this.add(newButton);
     return newButton;
   }
 

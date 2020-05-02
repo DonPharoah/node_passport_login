@@ -7,7 +7,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
   entry: {
-    app: './src/main.ts',
+    app: './src/main-dev.ts',
   },
   watch: true,
   output: {
