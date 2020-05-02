@@ -10,7 +10,7 @@ import { Input, GameObjects } from 'phaser';
 import {
   ClientSceneMode,
   BuildingPlacementClientSceneMode,
-  DefaultClientSceneMode
+  DefaultClientSceneMode,
 } from './clientSceneStates';
 import buildingPresets from '../models/schemas/buildings/buildingPresets';
 
@@ -82,7 +82,7 @@ class ClientScene extends Phaser.Scene {
   public setRegistryData() {
     this.registry.set('gameBoundary', {
       width: 4000,
-      height: 4000
+      height: 4000,
     });
   }
 
@@ -109,11 +109,11 @@ class ClientScene extends Phaser.Scene {
     this.wilhelm = this.sound.add('wilhelm', { volume: 0 });
     this.buildings = this.add.group([], {
       classType: Phaser.GameObjects.Sprite,
-      name: 'buildings'
+      name: 'buildings',
     });
     this.units = this.add.group([], {
       classType: Phaser.GameObjects.Sprite,
-      name: 'units'
+      name: 'units',
     });
     this.buildingPhysicsGroup = this.physics.add.staticGroup();
     this.mainCamera.ignore(this.viewportRect);
@@ -194,7 +194,7 @@ class ClientScene extends Phaser.Scene {
       targets: selectionCircle,
       angle: 360,
       duration: 3000,
-      repeat: -1
+      repeat: -1,
     });
     return selectionCircle;
   }
@@ -222,9 +222,10 @@ class ClientScene extends Phaser.Scene {
   }
 
   public handleSockets() {
-    let uiScene = Utils.uiScene(this.game);
-    this.pingSocket = io.connect('http://localhost:4000/ping-namespace');
-    this.socket = io.connect('http://localhost:4000');
+    let uiScene = Utils.getUIScene(this.game);
+    this.socket = io.connect('http://localhost:4000', {
+      query: `username=${localStorage.getItem('username')}`,
+    });
 
     this.socket.on('connect', (player: Player) => {
       console.log('First connection reached server.');
@@ -244,7 +245,7 @@ class ClientScene extends Phaser.Scene {
     });
 
     this.socket.on(Events.PLAYER_DISCONNECTED, (player: Player) => {
-      uiScene.showOverlayMessage(`Player: ${player.name} disconnected.`);
+      uiScene.showOverlayMessage(`Player: ${player.username} disconnected.`);
       delete this.playersList[player.id];
     });
 
@@ -258,7 +259,13 @@ class ClientScene extends Phaser.Scene {
       }) => {
         console.log('running update_players_list');
         const { playersList } = playersData;
+        let playerNamesList = Object.keys(playersList).reduce((accum, nextKey) => {
+          accum.push(playersList[nextKey].username);
+          return accum;
+        }, []);
+        uiScene.setCurrentUsersText(playerNamesList);
         this.playersList = playersList;
+        console.log(this.playersList);
         this.updateEntityData(playersData);
       }
     );
@@ -373,12 +380,12 @@ class ClientScene extends Phaser.Scene {
       x: worldX,
       y: worldY,
       selectedIds: selectedIds,
-      targetId: this.mouseOvers[0].id
+      targetId: this.mouseOvers[0].id,
     });
   }
 
   public mouseOverEvent(entityMousedOver: Entity) {
-    let uiScene = Utils.uiScene(this.game);
+    let uiScene = Utils.getUIScene(this.game);
     uiScene.clearText();
     this.mouseOvers.push(entityMousedOver);
     // uiScene.showMessage(`Selected: ${this.mouseOvers[0].id}`);
@@ -388,7 +395,7 @@ class ClientScene extends Phaser.Scene {
   }
 
   public mouseOffEvent(objectMousedOff: Entity) {
-    let uiScene = Utils.uiScene(this.game);
+    let uiScene = Utils.getUIScene(this.game);
     uiScene.clearText();
     this.mouseOvers = this.mouseOvers.filter((mouseOverEntity) => mouseOverEntity !== objectMousedOff);
   }
@@ -398,7 +405,7 @@ class ClientScene extends Phaser.Scene {
     let foundBuilding = this.findBuildingInCurrentSelected(building);
     if (foundBuilding) {
       this.deselectEntity(foundBuilding);
-      Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
+      Utils.getUIScene(this.game).onSelectionAmountChanged(this.currentSelected);
     }
   }
   // public checkIfBuildingInCurrentSelected(building: Entity): boolean {
@@ -458,7 +465,7 @@ class ClientScene extends Phaser.Scene {
       targets: laserbeam,
       alpha: 0,
       duration: 1000,
-      ease: 'Quart'
+      ease: 'Quart',
     });
   }
 
@@ -503,7 +510,7 @@ class ClientScene extends Phaser.Scene {
     const circle = this.addSelectionCircle(entity.getPosition());
     const tooltip = this.addToolTip(entity);
     this.currentSelected.push({ entity, circle, tooltip });
-    Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
+    Utils.getUIScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
   }
 
@@ -512,7 +519,7 @@ class ClientScene extends Phaser.Scene {
       this.deselectEntity(entity);
     });
     this.currentSelected = [];
-    Utils.uiScene(this.game).onSelectionAmountChanged(this.currentSelected);
+    Utils.getUIScene(this.game).onSelectionAmountChanged(this.currentSelected);
     this.updateDebugGui();
   }
 
@@ -539,7 +546,7 @@ class ClientScene extends Phaser.Scene {
     this.currentSelected.forEach((selection) => {
       displayText = displayText + `${selection.entity.getName()} `;
     });
-    Utils.uiScene(this.game).setTitleText(displayText);
+    Utils.getUIScene(this.game).setTitleText(displayText);
   }
 }
 export let getClientSceneInstance;

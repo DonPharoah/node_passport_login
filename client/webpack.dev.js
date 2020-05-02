@@ -22,7 +22,6 @@ module.exports = {
   },
   externals: {
     phaser: 'Phaser',
-    // 'socket.io-client': 'socket.io',
   },
   module: {
     rules: [

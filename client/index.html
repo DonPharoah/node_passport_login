@@ -20,8 +20,89 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script> -->
   </head>
 
+  <head>
+    <meta charset="UTF-8" />
+    <title>RTS Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta http-equiv="cleartype" content="on" />
+    <style>
+      html,
+      body,
+      canvas {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+      }
+
+      #login .container #login-row #login-column #login-box {
+        margin-top: 140px;
+        max-width: 600px;
+        height: 270px;
+        border: 1px solid #9c9c9c;
+        background-color: #eaeaea;
+      }
+
+      #login .container #login-row #login-column #login-box #login-form {
+        padding: 40px;
+      }
+
+      #login .container #login-row #login-column #login-box #login-form #register-link {
+        margin-top: -85px;
+      }
+    </style>
+    <link
+      href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+      rel="stylesheet"
+      id="bootstrap-css"
+    />
+    <!-- <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script> -->
+    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
+    <!------ Include the above in your HEAD tag ---------->
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.22.0/dist/phaser.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script> -->
+  </head>
+
   <body>
-    <div id="content"></div>
+    <div id="error-msg" class="alert alert-danger" role="alert" style="display: none;">
+      Cannot connect to server. Try again.
+    </div>
+    <div id="login" style="display: none;">
+      <h3 class="text-center text-white pt-5">Phaser RTS Game</h3>
+      <div class="container">
+        <div id="login-row" class="row justify-content-center align-items-center">
+          <div id="login-column" class="col-md-6">
+            <div id="login-box" class="col-md-12">
+              <form id="login-form" class="form" action="" method="post">
+                <h3 class="text-center text-info">Choose Nickname</h3>
+                <div class="form-group">
+                  <label for="username" class="text-info">Nickname:</label><br />
+                  <input type="text" name="username" id="username" class="form-control" required />
+                </div>
+                <div class="form-group text-center">
+                  <input
+                    type="submit"
+                    id="submit-btn"
+                    name="submit"
+                    class="btn btn-info btn-md"
+                    value="submit"
+                  />
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="game"></div>
     <script src="./app.bundle.js"></script>
   </body>
 </html>

@@ -15,6 +15,7 @@ const initOverlayTexts = (uiScene: UIScene | UiScenePhaser) => {
     fontSize: '16px',
     color: 'red',
   });
+  const currentUsersText: Phaser.GameObjects.Text = uiScene.add.text(20, 140, '', { fontSize: '16px' });
   // const SELECTED_ENTITY_TITLE: Phaser.GameObjects.Text = uiScene.add.text(20, 600, 'Currently Selected: ', {
   //   fontSize: '16px',
   //   color: '#0000ff',
@@ -40,7 +41,7 @@ const initOverlayTexts = (uiScene: UIScene | UiScenePhaser) => {
       wordWrap: { width: 300, useAdvancedWrap: false },
     },
   });
-  overlayTexts = { titleText, debugText, userNameText, errorText, tooltipText };
+  overlayTexts = { titleText, debugText, userNameText, errorText, currentUsersText, tooltipText };
   return overlayTexts;
 };
 
