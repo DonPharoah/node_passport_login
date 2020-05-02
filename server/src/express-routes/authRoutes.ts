@@ -4,6 +4,7 @@ import * as jwt from 'jsonwebtoken';
 
 authRoutes.post('/login', (req, res, next) => {
   const authHeader = req.get('Authorization');
+
   if (!authHeader) {
     const error = new Error('Not authorized.');
     // @ts-ignore
@@ -40,6 +41,7 @@ authRoutes.post('/create-user', (req, res, next) => {
     token: token,
     username: username,
   });
+  req.app.locals.username = username;
 });
 
 export default authRoutes;

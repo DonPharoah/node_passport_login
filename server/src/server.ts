@@ -58,12 +58,13 @@ function startServer() {
       });
     });
 }
-
+startServer();
 export const getServer = (): http.Server | null => {
   return server ? server : null;
+};
+export const getExpressApp = (): Express.Application => {
+  return app;
 };
 export const getIo = (): socketIo.Server => {
   return io ? io : null;
 };
-
-startServer();

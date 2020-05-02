@@ -166,6 +166,12 @@ class UIScene extends Phaser.Scene {
   public setSelectedEntityText(name: string) {
     this.overlayTexts.selectedEntityText.setText(name);
   }
+
+  public setCurrentUsersText(users: string[]) {
+    let usersList = 'Connected Users:\n';
+    users.forEach((user) => (usersList += user + '\n'));
+    this.overlayTexts.currentUsersText.setText(usersList);
+  }
 }
 
 export default UIScene;

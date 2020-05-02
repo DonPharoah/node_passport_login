@@ -10,8 +10,9 @@ const existingUsername = localStorage.getItem('username');
 window.onload = () => {
   if (existingToken && existingUsername) {
     return login('http://localhost:4000/auth/login');
+  } else {
+    showLogin();
   }
-  showLogin();
 };
 
 loginForm.addEventListener('submit', async function (e) {
@@ -30,6 +31,7 @@ const login = (url) => {
     method: 'POST',
     headers: {
       Authorization: 'Bearer ' + existingToken,
+      username: localStorage.getItem('username'),
     },
   })
     .then((res) => {
@@ -51,6 +53,7 @@ const signUp = (url) => {
   fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      username: localStorage.getItem('username'),
     },
     method: 'POST',
     body: JSON.stringify({
@@ -73,14 +76,20 @@ const signUp = (url) => {
       const expiryDate = new Date(new Date().getTime() + remainingMilliseconds);
       localStorage.setItem('expiryDate', expiryDate.toISOString());
       setAutoLogout(remainingMilliseconds);
+      hideError();
       hideLogin();
       startGame();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      showError();
+    });
 };
 
 const showLogin = () => (document.getElementById('login').style.display = 'initial');
 const hideLogin = () => (document.getElementById('login').style.display = 'none');
+const showError = () => (document.getElementById('error-msg').style.display = 'block');
+const hideError = () => (document.getElementById('error-msg').style.display = 'none');
 
 const logoutHandler = () => {
   localStorage.removeItem('token');

@@ -7,7 +7,6 @@ export const enum Events {
   BUILDING_REMOVED = 'buildingRemoved',
   UNIT_REMOVED = 'unitRemoved',
   CONNECTION_ACKNOWLEDGED = 'connectionAcknowledged',
-  DISCONNECT = 'disconnect',
   PING_EVENT = 'pingEvent',
   PONG_EVENT = 'pongEvent',
   CHANGE_NAME = 'changeName',
@@ -22,5 +21,5 @@ export const enum Events {
   PLAYER_ISSUE_COMMAND = 'playerIssueCommand',
   LOAD_ALL_BUILDINGS = 'loadBuildings',
   LOAD_ALL_UNITS = 'loadUnits',
-  UPDATE_ENTITY_HEALTH = 'updateEntity'
+  UPDATE_ENTITY_HEALTH = 'updateEntity',
 }
