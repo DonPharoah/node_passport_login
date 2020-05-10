@@ -1,12 +1,27 @@
 import UIScenePhaser from '../uiScenePhaser';
 
-class Component extends Phaser.GameObjects.Container {
+export interface ComponentPreferences {
+  x?: number;
+  y?: number;
+  alignment?: { horizontal: 'left' | 'center' | 'right'; vertical: 'top' | 'center' | 'bottom' };
+  height: number;
+  width: number;
+}
+
+abstract class Component extends Phaser.GameObjects.Container {
   protected preferredRectangle: Phaser.GameObjects.Shape;
   public rectangle: Phaser.GameObjects.Shape;
 
-  public constructor(scene: UIScenePhaser, x: number, y: number) {
+  public preferences: ComponentPreferences;
+
+  public constructor(
+    scene: UIScenePhaser,
+    x?: number,
+    y?: number,
+    componentPreferences?: ComponentPreferences
+  ) {
     super(scene, x, y);
-    //scene.add.existing(this);
+    this.preferences = componentPreferences;
   }
 
   protected cloneRectangle(
@@ -17,5 +32,7 @@ class Component extends Phaser.GameObjects.Container {
     const newRactangle = new Phaser.GameObjects.Rectangle(scene, x, y, width, height, fillColor, fillAlpha);
     return newRactangle;
   }
+
+  public abstract resize(width: number, height: number);
 }
 export default Component;

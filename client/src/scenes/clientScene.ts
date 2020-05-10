@@ -346,10 +346,10 @@ class ClientScene extends Phaser.Scene {
       // uiScene.appendToTextArea(message);
     });
 
-    this.pingSocket.on(Events.PONG_EVENT, () => {
-      let latency = Date.now() - this.pingStartTime;
-      uiScene.showOverlayMessage(`latency: ${latency}ms`);
-    });
+    // this.pingSocket.on(Events.PONG_EVENT, () => {
+    //   let latency = Date.now() - this.pingStartTime;
+    //   uiScene.showOverlayMessage(`latency: ${latency}ms`);
+    // });
 
     this.socket.on(Events.UPDATE_ENTITY_HEALTH, (uuid, health, callerUuid) => {
       let damagerEntity: Entity;

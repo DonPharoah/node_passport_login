@@ -29,16 +29,9 @@ class UIScenePhaser extends Phaser.Scene {
     this.registry.set('userName', 'Default User Name');
     this.overlayTexts = initOverlayTexts(this);
 
-    //this.addMultipurposePanel();
+    //Frame.createTestPrompt(this, () => {});
+    Frame.createHUD(this);
     Frame.createYesNoPrompt(this, () => {});
-
-    //setTimeout(() => this.mainSizer.layout(), 5000);
-
-    /*this.registry.events.on('changedata', (parent, key, value) => {
-      if (key === 'userName') {
-        this.setUsernameText(`Player name: ${value}`);
-      }
-    });*/
   }
 
   public addBuildingPanel() {}
@@ -51,9 +44,9 @@ class UIScenePhaser extends Phaser.Scene {
     const options: frameOptions = {
       x: 200,
       y: 300,
-      width: 400,
+      width: 1000,
       height: 200,
-      verticalAlignment: 'bottom',
+      alignment: { vertical: 'bottom', horizontal: 'center' },
     };
     new Frame(this, options);
   }
