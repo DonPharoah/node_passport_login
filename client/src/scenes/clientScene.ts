@@ -350,8 +350,6 @@ class ClientScene extends Phaser.Scene {
         damagerEntity = entity;
       });
       Utils.findEntityByIdAndRun(this, uuid, (entity) => {
-        // TODO: check that if when entity is destroyed, they aren't being selected. If so,
-        // they will need to run the deselection event.
         entity.setHealth(health);
         this.drawLaser(damagerEntity.getPosition(), entity.getPosition());
       });

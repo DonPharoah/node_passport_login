@@ -1,3 +1,5 @@
+import { EntitySchema } from '../schemas/entitySchema';
+
 // import MainScene from '../scenes/mainScene';
 
 abstract class Entity {
@@ -5,6 +7,8 @@ abstract class Entity {
   public ownerId: string;
   public currentHealth: number;
   private destructionListeners = [];
+  static scene;
+  abstract preset: EntitySchema;
 
   //public onCollision = () => {};
   //public onCollisionEnd = () => {};
@@ -43,6 +47,14 @@ abstract class Entity {
       });
       this.destructionListeners = [];
       this.onDestroyedEvent();
+    }
+  }
+
+  public repairDamage(repairAmount: number) {
+    if (this.currentHealth + repairAmount > this.preset.maxHealth) {
+      this.currentHealth = this.preset.maxHealth;
+    } else {
+      this.currentHealth += repairAmount;
     }
   }
 

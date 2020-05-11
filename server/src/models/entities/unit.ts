@@ -4,6 +4,7 @@ import { getSeed } from '../../utils/seed';
 import Entity from './entity';
 import ServerScene from '../../scenes/serverScene';
 import { UnitAI, OrbitAI, GotoAI, IdleAI } from '../schemas/unitMovements';
+import { EntitySchema } from '../schemas/entitySchema';
 
 class Unit extends Entity {
   public readonly body: Body;
@@ -12,49 +13,46 @@ class Unit extends Entity {
   private unitAI: UnitAI = new IdleAI();
   private friendsInLOS = {};
   private enemiesInLOS = {};
-  private attackTarget: Entity;
-  private attackTimer;
+  private targetedEntity: Entity;
+  private actionTimer;
+
+  private isAttacking: boolean = false;
+
+  public preset: EntitySchema = { maxHealth: 100 }; //TODO UNIT SCHEMAS
 
   constructor(scene: ServerScene, position: Vector, radius, target: Building, returnTarget?: Building) {
     super();
+    Entity.scene = scene;
     const { x, y } = position;
     const seed = getSeed();
     this.currentHealth = 100;
     this.id = seed.generate();
     this.body = Bodies.circle(x, y, radius, { isSensor: true, frictionAir: 0 });
+
     // @ts-ignore
     this.body.ownerEntity = this;
 
     // @ts-ignore
     this.body.onCollision = (collidedObject) => {
       const collidingEntity = collidedObject.ownerEntity as Entity;
-      if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
-        this.enemiesInLOS[collidingEntity.id] = collidingEntity;
-        this.designateAttackTarget(scene, collidingEntity);
-      } else {
-        this.friendsInLOS[collidingEntity.id] = collidingEntity;
-      }
+      if (collidedObject.ownerEntity.ownerId === this.ownerId) this.onFriendEnteringRange(collidingEntity);
+      else this.onEnemyEnteringRange(collidingEntity);
     };
     // @ts-ignore
     this.body.onCollisionEnd = (collidedObject) => {
       // Called when line of sight ends, due to either target leaving range or being destroyed
       const targetEntity = collidedObject.ownerEntity as Entity;
-      // If targetEntity was an enemy
+
       if (collidedObject.ownerEntity.ownerId !== this.ownerId) {
         delete this.enemiesInLOS[targetEntity.id];
-        // If this unit was attacking targetEntity
-        if (targetEntity == this.attackTarget) {
-          // Remove attack observer and stop timer
-          this.removeAttackTarget();
-          // Look for other targets in range. Right now just target next in array, but later look through list and prioritize
-          if (Object.keys(this.enemiesInLOS).length > 0) {
-            const nextTargetKey = Object.keys(this.enemiesInLOS)[0];
-            this.designateAttackTarget(scene, this.enemiesInLOS[nextTargetKey]);
-          } else {
-          }
-        }
       } else {
         delete this.friendsInLOS[targetEntity.id];
+      }
+
+      if (targetEntity === this.targetedEntity) {
+        // Remove attack observer and stop timer
+        this.removeActionTarget();
+        this.assessEntitiesInRange();
       }
     };
     this.designateFollowTarget(scene, target, returnTarget);
@@ -64,7 +62,7 @@ class Unit extends Entity {
     this.onDestroyedEvent = () => {
       // @ts-ignore
       this.body.onCollisionEnd = (collidedObject) => {};
-      this.removeAttackTarget();
+      this.removeActionTarget();
       this.unitAI.onEnd();
       scene.removeUnit(this.id);
     };
@@ -74,6 +72,37 @@ class Unit extends Entity {
     this.unitAI.onEnd();
     this.unitAI = newAI;
     newAI.onStart();
+  }
+
+  private onEnemyEnteringRange(newEnemyInRange: Entity) {
+    this.enemiesInLOS[newEnemyInRange.id] = newEnemyInRange;
+    if (!this.targetedEntity) this.assessEntitiesInRange();
+  }
+
+  private onFriendEnteringRange(newFriendInRange: Entity) {
+    this.friendsInLOS[newFriendInRange.id] = newFriendInRange;
+
+    if (!this.targetedEntity) this.assessEntitiesInRange();
+  }
+
+  // CAN POSSIBLY MAKE WAY FOR MORE COMPLEX AI
+  private assessEntitiesInRange() {
+    let keys = Object.keys(this.enemiesInLOS);
+    if (keys.length > 0) {
+      this.designateAttackTarget(Entity.scene, this.enemiesInLOS[keys[0]] as Entity);
+      return;
+    }
+    keys = Object.keys(this.friendsInLOS);
+    //console.log('FRIENDS ' + keys.length);
+    /*if (keys.length > 0) {
+      const damagedEntityFriends: any[] = Object.values(this.friendsInLOS).filter((friendInLOS: Entity) => {
+        friendInLOS.currentHealth < friendInLOS.preset.maxHealth;
+      });
+      if (damagedEntityFriends.length > 0) {
+        this.designateRepairTarget(Entity.scene, damagedEntityFriends[keys[0]]);
+      }
+      return;
+    }*/
   }
 
   public designateFollowTarget(scene, orbitTarget, returnTarget: Building) {
@@ -96,31 +125,41 @@ class Unit extends Entity {
     this.setAiMovement(goto);
   }
 
-  private removeAttackTarget() {
-    this.attackTarget = null;
-    clearInterval(this.attackTimer);
+  private removeActionTarget() {
+    this.targetedEntity = null;
+    clearInterval(this.actionTimer);
   }
 
   private designateAttackTarget(scene: ServerScene, target: Entity) {
-    if (!this.attackTarget) {
-      this.attackTarget = target;
-      this.attackTimer = setInterval(() => {
-        //console.log(targetBuilding.id);
-        this.attackTarget.takeDamage(50);
-        scene.updateEntityHealth(this.attackTarget, this);
-      }, 1000);
-      this.attackTarget.addDestructionCallback(() => {
-        clearInterval(this.attackTimer);
-      });
-    }
+    this.targetedEntity = target;
+    clearInterval(this.actionTimer);
+    this.actionTimer = setInterval(() => {
+      //console.log(targetBuilding.id);
+      this.targetedEntity.takeDamage(50);
+      scene.updateEntityHealth(this.targetedEntity, this);
+    }, 1000);
+    this.targetedEntity.addDestructionCallback(() => {
+      clearInterval(this.actionTimer);
+    });
   }
 
-  private searchForAttackTarget(scene: ServerScene) {
-    let nextTarget: Entity = null;
-    Object.keys(this.enemiesInLOS).forEach((enemyId) => {
-      nextTarget = this.enemiesInLOS[enemyId];
-    });
-    if (nextTarget) this.designateAttackTarget(scene, nextTarget);
+  private designateRepairTarget(scene: ServerScene, target: Entity) {
+    this.targetedEntity = target;
+    clearInterval(this.actionTimer);
+    this.actionTimer = setInterval(() => {
+      if (this.targetedEntity.currentHealth < this.targetedEntity.preset.maxHealth) {
+        this.targetedEntity.repairDamage(5);
+        scene.updateEntityHealth(this.targetedEntity, this);
+      } else {
+        clearInterval(this.actionTimer);
+        const damagedFriendlyEntities = Object.values(this.friendsInLOS).filter(
+          (friendlyEntity: Entity) => friendlyEntity.currentHealth < friendlyEntity.preset.maxHealth
+        );
+        if (damagedFriendlyEntities.length > 0) {
+          this.designateRepairTarget(scene, damagedFriendlyEntities[0] as Entity);
+        }
+      }
+    }, 1000);
   }
 
   public isOrbiting(entity?: Entity): boolean {
@@ -146,7 +185,7 @@ class Unit extends Entity {
   }
   public setOwner(newOwnerId: string) {
     this.ownerId = newOwnerId;
-    this.removeAttackTarget();
+    this.removeActionTarget();
   }
 
   public sendServerDebugData() {}

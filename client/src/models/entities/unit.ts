@@ -35,6 +35,8 @@ export class Unit extends Entity {
     this.hydratePresetData(presetType);
     this.container = scene.add.container(position.x, position.y);
 
+    this.preset.maxHealth = 100; // DELETE WHEN PRESETS ARE DONE
+
     // this.shape = scene.add.rectangle(0, 0, 10, 10, Unit.FILL_COLOR);
     this.shape = scene.add.triangle(0, 0, 10, 10, 20, 20, 30, 10, Unit.FILL_COLOR);
     this.container.add(this.shape);

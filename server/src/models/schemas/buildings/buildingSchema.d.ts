@@ -2,14 +2,14 @@ declare type BuildingPresetConstants = import('../../entities/building').Buildin
 
 import ServerScene from '../../../scenes/serverScene';
 import Entity from '../../entities/entity';
+import { EntitySchema } from '../entitySchema';
 
-interface BuildingSchema {
+interface BuildingSchema extends EntitySchema {
   presetType: BuildingPresetConstants;
   color: number;
   name: string;
   size: number;
   shape: 'TRIANGLE' | 'SQUARE' | 'RECTANGLE' | 'CIRCLE';
-  maxHealth: number;
   update: () => void;
   command: (
     scene: ServerScene,
