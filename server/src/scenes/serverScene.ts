@@ -1,4 +1,4 @@
-import { getIo } from '../utils/server';
+import { getIo } from '../server';
 import { getSeed } from '../utils/seed';
 import {
   Bounds,
@@ -7,7 +7,7 @@ import {
   Engine,
   World,
   Bodies,
-  Body
+  Body,
 } from '../../externalLibraries/matter-dev.js';
 import Building from '../models/entities/building';
 import Unit from '../models/entities/unit';
@@ -16,6 +16,7 @@ import Entity from '../models/entities/entity';
 import buildingPresets from '../models/schemas/buildings/buildingPresets';
 import { BuildingPresetConstants } from '../models/schemas/buildings/buildingSchema';
 import DebugOverlay from '../utils/debugOverlay';
+import { getExpressApp } from '../server';
 
 class ServerScene {
   public playersList: Players = {};
@@ -23,18 +24,18 @@ class ServerScene {
   public buildings: Buildings = {};
 
   private io = getIo();
-
-  private pingNamespace: SocketIO.Namespace;
+  // private pingNamespace: SocketIO.Namespace;
   private engine: Engine;
   private box: Body;
   private ground: Body;
   private world: World;
-
+  private app: Express.Application;
   public static debugOverlay: DebugOverlay;
 
   // public testUnit: Unit;
 
   constructor() {
+    this.app = getExpressApp();
     this.init();
   }
 
@@ -66,7 +67,7 @@ class ServerScene {
       id: newEntity.id,
       ownerId: newEntity.ownerId,
       type: entityType,
-      targetId: targetId
+      targetId: targetId,
     });
   }
 
@@ -103,26 +104,27 @@ class ServerScene {
 
     this.io.emit(Events.DEBUG_SET_TOOLTIP, {
       entityID: entity.id,
-      text: debugTooltipText
+      text: debugTooltipText,
     });
   }
 
   public handleSockets() {
-    this.pingNamespace = this.io.of('/ping-namespace');
-    this.pingNamespace.on('connect', (socket) => {
-      socket.on(Events.PING_EVENT, () => {
-        socket.emit(Events.PONG_EVENT);
-      });
-    });
+    // this.pingNamespace = this.io.of('/ping-namespace');
+    // this.pingNamespace.on('connect', (socket) => {
+    //   socket.on(Events.PING_EVENT, () => {
+    //     socket.emit(Events.PONG_EVENT);
+    //   });
+    // });
 
     // this.io.on(Events.CONNECTION, (socket) => {
     this.io.on('connect', (socket) => {
       console.log('player connected at ' + new Date());
       console.log(`current players: ${Object.keys(this.playersList).length}`);
+      const username = socket.handshake.query.username;
       this.playersList[socket.id] = {
         id: socket.id,
-        name: `Player${Math.round(Math.random() * 1000) + 1}`,
-        color: ('00000' + ((Math.random() * (1 << 24)) | 0).toString(16)).slice(-6)
+        username: username,
+        color: ('00000' + ((Math.random() * (1 << 24)) | 0).toString(16)).slice(-6),
       };
       socket.emit(Events.PLAYER_INIT, this.playersList);
       // socket.broadcast.emit(Events.CONNECTION, this.playersList[socket.id]);
@@ -130,32 +132,33 @@ class ServerScene {
       this.io.emit(Events.UPDATE_PLAYERS_LIST, {
         ownerId: socket.id,
         playersList: this.playersList,
-        joinOrLeave: 1
+        joinOrLeave: 1,
       });
 
       this.notifyClientOfEntities(socket);
 
-      socket.on(Events.CHANGE_NAME, (name) => {
+      socket.on(Events.CHANGE_NAME, (newName) => {
         // this.addUnitToSceneAndNotify(new Unit(this, 50, 50));
-        this.playersList[socket.id].name = name;
-        socket.emit(Events.CHANGE_NAME_OK, this.playersList[socket.id].name);
+        this.playersList[socket.id].username = newName;
+        socket.emit(Events.CHANGE_NAME_OK, this.playersList[socket.id].username);
         // socket.emit('errorStatus', 'Could not change name');
       });
 
       socket.on(Events.GET_ALL_USER_NAMES, () => {
         socket.emit(
           Events.GET_ALL_USER_NAMES,
-          Object.values(this.playersList).map((player) => player.name)
+          Object.values(this.playersList).map((player) => player.username)
         );
       });
 
       // socket.on(Events.PLAYER_DISCONNECTED, () => {
       //   socket.disconnect();
       // });
-      socket.on(Events.DISCONNECT, () => {
+      socket.on('disconnect', () => {
         console.log(`User ${socket.id} disconnected`);
         this.io.emit(Events.PLAYER_DISCONNECTED, this.playersList[socket.id]);
         delete this.playersList[socket.id];
+        console.log(`current players: ${Object.keys(this.playersList).length}`);
         this.getBuildingsOfOwner(socket.id, (buildings) => {
           console.log('Buildings found ' + buildings.length);
           buildings.map((ownerBuilding: Building) => {
@@ -174,9 +177,10 @@ class ServerScene {
           newOwnerId: '123',
           oldOwnerId: socket.id,
           playersList: this.playersList,
-          joinOrLeave: 0
+          joinOrLeave: 0,
         });
       });
+
       socket.on(Events.ISSUE_UNIT_COMMAND, () => {});
 
       socket.on(
@@ -236,7 +240,7 @@ class ServerScene {
   }
 
   private handleCollisionEvents() {
-    MatterEvents.on(this.engine, 'collisionStart', function(event) {});
+    MatterEvents.on(this.engine, 'collisionStart', function (event) {});
   }
 
   public findBuildingById(id: string): Building {
@@ -291,8 +295,8 @@ class ServerScene {
   public initBogusPlayer() {
     this.playersList['123'] = {
       id: '123',
-      name: `WORLD`,
-      color: 'dddddd'
+      username: `WORLD`,
+      color: 'dddddd',
     };
   }
   public initPhysics() {

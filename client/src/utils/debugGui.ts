@@ -25,10 +25,10 @@ const debugGui = new dat.GUI({ name: 'debugGui', width: 350 });
 //   // debugGui.add(options, 'startDebugScene');
 // };
 
-const debugGuiOptions = function(context: ClientScene) {
+const debugGuiOptions = function (context: ClientScene) {
   this.genericInput = 'defaultText';
-  this.sendMessageEvent = () => Utils.uiScene(context.game).showOverlayMessage(this.genericInput);
-  this.sendTestErrorEvent = () => Utils.uiScene(context.game).showOverlayError(this.genericInput);
+  this.sendMessageEvent = () => Utils.getUIScene(context.game).showOverlayMessage(this.genericInput);
+  this.sendTestErrorEvent = () => Utils.getUIScene(context.game).showOverlayError(this.genericInput);
   this.requestChangeUserName = () => context.socket.emit(Events.CHANGE_NAME, this.genericInput);
   this.setUserName = () => context.registry.set('userName', this.genericInput);
   this.getAllUsers = () => context.socket.emit(Events.GET_ALL_USER_NAMES);

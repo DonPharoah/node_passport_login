@@ -7,7 +7,7 @@ import { BuildingFactory } from '../models/entities/factories/buildingFactory';
 import UIScene from '../views/uiScene';
 
 export class Utils {
-  public static uiScene(game: Phaser.Game): UIScene {
+  public static getUIScene(game: Phaser.Game): UIScene {
     return game.scene.getScene('uiScene') as UIScene;
   }
   public static addNewBuildingToScene(
@@ -41,7 +41,7 @@ export class Utils {
   }
 
   public static removeBuildingFromScene(scene: ClientScene, removeBuildingId) {
-    let uiScene = Utils.uiScene(scene.game);
+    let uiScene = Utils.getUIScene(scene.game);
     const deleteBuilding = Utils.findBuildingById(scene, removeBuildingId);
     deleteBuilding.destroy();
     deleteBuilding.remove();
@@ -49,7 +49,7 @@ export class Utils {
   }
 
   public static removeUnitFromScene(scene: ClientScene, removeUnitId) {
-    let uiScene = Utils.uiScene(scene.game);
+    let uiScene = Utils.getUIScene(scene.game);
     const deleteUnit = Utils.findUnitById(scene, removeUnitId);
     deleteUnit.destroy();
     deleteUnit.remove();
@@ -86,6 +86,19 @@ export class Utils {
     });
     if (!foundUnit) throw new Error(`Unit ${id} could not be found`);
     return foundUnit as Unit;
+  }
+
+  public static findUnitByIdAsync(scene: ClientScene, id: string): Promise<Unit> {
+    let unitArray = scene.units.getChildren();
+    return new Promise((resolve, reject) => {
+      let foundUnit = unitArray.find((currentUnit: Unit) => {
+        return currentUnit.id === id;
+      });
+      if (!foundUnit) {
+        reject(new Error(`Unit ${id} could not be found`));
+      }
+      resolve(foundUnit as Unit);
+    });
   }
 
   public static findEntityByIdAndRun(

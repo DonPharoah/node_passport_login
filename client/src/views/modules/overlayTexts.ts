@@ -1,7 +1,8 @@
 import UIScene from '../uiScene';
+import UiScenePhaser from '../uiScenePhaser';
 
 let overlayTexts = {};
-const initOverlayTexts = (uiScene: UIScene) => {
+const initOverlayTexts = (uiScene: UIScene | UiScenePhaser) => {
   const titleText: Phaser.GameObjects.Text = uiScene.add.text(20, 20, 'Title Text', { fontSize: '16px' });
   const debugText: Phaser.GameObjects.Text = uiScene.add.text(20, 50, 'Testing', { fontSize: '16px' });
   const userNameText: Phaser.GameObjects.Text = uiScene.add.text(
@@ -12,8 +13,9 @@ const initOverlayTexts = (uiScene: UIScene) => {
   );
   const errorText: Phaser.GameObjects.Text = uiScene.add.text(20, 110, '', {
     fontSize: '16px',
-    color: 'red'
+    color: 'red',
   });
+  const currentUsersText: Phaser.GameObjects.Text = uiScene.add.text(20, 140, '', { fontSize: '16px' });
   // const SELECTED_ENTITY_TITLE: Phaser.GameObjects.Text = uiScene.add.text(20, 600, 'Currently Selected: ', {
   //   fontSize: '16px',
   //   color: '#0000ff',
@@ -36,10 +38,10 @@ const initOverlayTexts = (uiScene: UIScene) => {
       color: '#0099ff',
       stroke: '#004489',
       align: 'left',
-      wordWrap: { width: 300, useAdvancedWrap: false }
-    }
+      wordWrap: { width: 300, useAdvancedWrap: false },
+    },
   });
-  overlayTexts = { titleText, debugText, userNameText, errorText, tooltipText };
+  overlayTexts = { titleText, debugText, userNameText, errorText, currentUsersText, tooltipText };
   return overlayTexts;
 };
 

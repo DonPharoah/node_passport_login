@@ -3,13 +3,13 @@ import { createBuildingPanel } from './modules/buildingPanel';
 // import { initMultipurposePanel, showPanel, hidePanel } from './modules/multipurposePanel';
 import multipurposePanelManager from './modules/multipurposePanel';
 import { initOverlayTexts } from './modules/overlayTexts';
-// import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
+import UIPlugin from '../../vendorModules/rex-ui/templates/ui/ui-plugin';
 import { Entity } from '../models/entities/entity';
-// type rexUi = UIPlugin;
+import Frame, { frameOptions } from './uiComponents/frame';
+type rexUi = UIPlugin;
 
-class UIScene extends Phaser.Scene {
-  // [rexUi: string]: rexUi;
-  [rexUi: string]: any;
+class UIScenePhaser extends Phaser.Scene {
+  [rexUi: string]: rexUi;
   private mainSizer;
   private overlayTexts;
   constructor() {
@@ -28,35 +28,27 @@ class UIScene extends Phaser.Scene {
   create() {
     this.registry.set('userName', 'Default User Name');
     this.overlayTexts = initOverlayTexts(this);
-    this.mainSizer = createMainSizer(this);
 
-    this.addBuildingPanel();
-    this.addMultipurposePanel();
-
-    setTimeout(() => this.mainSizer.layout(), 5000);
-
-    this.registry.events.on('changedata', (parent, key, value) => {
-      if (key === 'userName') {
-        this.setUsernameText(`Player name: ${value}`);
-      }
-    });
+    //Frame.createTestPrompt(this, () => {});
+    Frame.createHUD(this);
+    Frame.createYesNoPrompt(this, () => {});
   }
 
-  public addBuildingPanel() {
-    this.mainSizer.add(createBuildingPanel(this), 0, 'center', 7, true, 'buildingPanel');
-    this.mainSizer.layout();
+  public addBuildingPanel() {}
+
+  public addFrame(options: frameOptions) {
+    const { width, height, x, y }: frameOptions = options;
   }
 
   public addMultipurposePanel() {
-    this.mainSizer.add(
-      multipurposePanelManager.createMultipurposePanel(this),
-      0,
-      'center',
-      7,
-      true,
-      'multipurposePanel'
-    );
-    this.mainSizer.layout();
+    const options: frameOptions = {
+      x: 200,
+      y: 300,
+      width: 1000,
+      height: 200,
+      alignment: { vertical: 'bottom', horizontal: 'center' },
+    };
+    new Frame(this, options);
   }
 
   public clearMultipurposePanelContents() {
@@ -92,7 +84,7 @@ class UIScene extends Phaser.Scene {
   }
 
   public onSelectionAmountChanged(currentSelected: { entity: Entity; circle: Phaser.GameObjects.Image }[]) {
-    if (currentSelected.length == 0) {
+    /*if (currentSelected.length == 0) {
       multipurposePanelManager.hidePanel(this);
       return;
     } else {
@@ -102,7 +94,7 @@ class UIScene extends Phaser.Scene {
       } else if (currentSelected.length > 1) {
         // populate panel with preset "Multiple Selected" data
       }
-    }
+    }*/
   }
   public setTooltipText(newText: string) {}
 
@@ -122,15 +114,15 @@ class UIScene extends Phaser.Scene {
   }
 
   public hideMultipurposePanel() {
-    multipurposePanelManager.hidePanel(this);
+    //multipurposePanelManager.hidePanel(this);
   }
 
   public showMultipurposePanel() {
-    multipurposePanelManager.showPanel(this);
+    //multipurposePanelManager.showPanel(this);
   }
 
   public showOverlayMessage(message = 'Default text') {
-    console.log(message);
+    /*console.log(message);
     this.tweens.killTweensOf(this.overlayTexts.debugText);
     this.overlayTexts.debugText.setText(message);
     this.overlayTexts.debugText.alpha = 1;
@@ -139,7 +131,7 @@ class UIScene extends Phaser.Scene {
       alpha: 0,
       duration: 5000,
       ease: 'Quad',
-    });
+    });*/
   }
 
   public showOverlayError(error = '') {
@@ -174,4 +166,4 @@ class UIScene extends Phaser.Scene {
   }
 }
 
-export default UIScene;
+export default UIScenePhaser;
